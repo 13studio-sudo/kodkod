@@ -3,6 +3,7 @@
 :root{--bg-0:#1c2024;--bg-1:#262b30;--bg-2:#313840;--line:#8e8b78;--line-dim:#5a5a4f;--ink:#d8d2bd;--ink-dim:#9c9684;--accent:#b8794a;--accent-2:#6b8a8a;--danger:#a8483a;--ok:#7a8b5a;--p1:#5b7280;--p2:#a3614a;--p3:#8a6e44;--p4:#5e7560}
 @font-face{font-family:'Bahnschrift';src:local('Bahnschrift'),local('Bahnschrift Light'),local('Bahnschrift SemiBold')}
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Bahnschrift','DIN','Tahoma',sans-serif;text-transform:uppercase;border-radius:0!important;letter-spacing:.04em}
+input,select,option,textarea,button{text-transform:uppercase}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg-0);color:var(--ink);user-select:none;-webkit-user-select:none;cursor:crosshair}
 canvas#game{position:fixed;inset:0;width:100%;height:100%;display:block}
 #hud{position:fixed;inset:0;pointer-events:none;z-index:10}
@@ -62,7 +63,7 @@ body.panel-open #hamburger span:nth-child(3){transform:translateY(-6px) rotate(-
 #menu-logo::before,#menu-logo::after{content:'';position:absolute;top:50%;left:50%;border:1px solid var(--accent)}
 #menu-logo::before{width:36px;height:36px;transform:translate(-50%,-50%) rotate(45deg)}
 #menu-logo::after{width:8px;height:8px;transform:translate(-50%,-50%);background:var(--accent)}
-#menu h1{font-size:42px;letter-spacing:.25em;color:var(--ink);margin-bottom:10px;font-weight:600}
+#menu h1{font-size:84px;letter-spacing:.25em;color:var(--ink);margin-bottom:10px;font-weight:600}
 #menu .sub{font-size:11px;color:var(--ink-dim);letter-spacing:.4em;margin-bottom:48px}
 #menu .divider{width:100%;height:1px;background:var(--line-dim);margin:32px 0;position:relative}
 #menu .divider::before,#menu .divider::after{content:'';position:absolute;width:10px;height:10px;border:1px solid var(--line-dim);top:50%;transform:translateY(-50%) rotate(45deg);background:var(--bg-0)}
@@ -74,11 +75,9 @@ body.panel-open #hamburger span:nth-child(3){transform:translateY(-6px) rotate(-
 #boot-track{height:14px;border:1px solid var(--line);background:rgba(0,0,0,.6);position:relative}
 #boot-fill{height:100%;width:0%;background:var(--accent);transition:width .08s linear}
 #boot-pct{font-size:11px;color:var(--ink);letter-spacing:.25em;margin-top:10px;font-family:ui-monospace,'Consolas',monospace}
-.boot-start-big{display:block;width:100%;border:1px solid var(--accent);background:rgba(0,0,0,.55);color:var(--ink);padding:36px 28px;cursor:pointer;text-align:center;transition:all .2s;font-family:inherit;letter-spacing:.2em;text-transform:uppercase;position:relative;overflow:hidden}
+.boot-start-big{display:block;width:100%;border:1px solid var(--accent);background:rgba(0,0,0,.55);color:var(--ink);padding:18px 14px;cursor:pointer;text-align:center;transition:all .2s;font-family:inherit;letter-spacing:.2em;text-transform:uppercase;position:relative;overflow:hidden}
 .boot-start-big:hover{background:rgba(255,255,255,.06);box-shadow:0 0 0 1px var(--accent),0 4px 22px rgba(0,0,0,.4)}
-.boot-start-big .idx{font-size:9px;color:var(--accent);letter-spacing:.4em;margin-bottom:10px;opacity:.9}
-.boot-start-big .name{font-size:44px;color:var(--accent);font-weight:700;letter-spacing:.35em;line-height:1;margin-bottom:12px}
-.boot-start-big .desc{font-size:10px;color:var(--ink-dim);letter-spacing:.3em}
+.boot-start-big .name{font-size:22px;color:var(--accent);font-weight:700;letter-spacing:.35em;line-height:1}
 #menu-foot{margin-top:18px;font-size:9px;color:var(--ink-dim);letter-spacing:.3em;display:flex;justify-content:space-between}
 #panel{position:fixed;top:0;right:0;bottom:0;width:380px;background:var(--bg-1);border-left:1px solid var(--line);transform:translateX(100%);transition:transform .35s cubic-bezier(.65,0,.35,1);z-index:55;display:flex;flex-direction:column;box-shadow:-20px 0 60px rgba(0,0,0,.6)}
 body.panel-open #panel{transform:translateX(0)}
@@ -147,15 +146,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;background:var(--acce
 #killfeed{position:fixed;top:90px;right:28px;z-index:15;display:flex;flex-direction:column;gap:4px;pointer-events:none}
 .kill-line{border-left:2px solid var(--accent);padding:6px 12px;background:rgba(0,0,0,.5);font-size:10px;color:var(--ink);letter-spacing:.15em;animation:kfslide .3s}
 @keyframes kfslide{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
-#player-list{position:fixed;top:90px;left:28px;border:1px solid var(--line-dim);background:rgba(0,0,0,.4);padding:12px 14px;z-index:15;min-width:200px;pointer-events:none}
-#player-list .pl-ttl{font-size:9px;color:var(--ink-dim);letter-spacing:.3em;margin-bottom:8px}
-.pl-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:10px}
-.pl-color{width:10px;height:10px;border:1px solid var(--ink-dim)}
-.pl-name{flex:1;color:var(--ink);letter-spacing:.1em}
-.pl-hp{color:var(--ok);font-family:monospace}
-.pl-row.dead .pl-name{color:var(--line-dim);text-decoration:line-through}
-.pl-row.dead .pl-hp{color:var(--danger)}
-@media (max-width:700px){#panel{width:100%}#menu h1{font-size:26px}#controls-hint{font-size:8px;padding:6px 10px;gap:8px;max-width:90%}#radar{width:130px;height:130px;bottom:100px;left:14px}#radar-canvas{width:130px;height:130px}#base-timer{width:130px;bottom:240px;left:14px}#base-timer-val{font-size:22px}}
+@media (max-width:700px){#panel{width:100%}#menu h1{font-size:52px}#controls-hint{font-size:8px;padding:6px 10px;gap:8px;max-width:90%}#radar{width:130px;height:130px;bottom:100px;left:14px}#radar-canvas{width:130px;height:130px}#base-timer{width:130px;bottom:240px;left:14px}#base-timer-val{font-size:22px}}
 </style></head><body>
 <canvas id=game></canvas>
 <button id=hamburger aria-label=Settings><span></span><span></span><span></span></button>
@@ -170,7 +161,6 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;background:var(--acce
 <div style="display:flex;gap:10px;align-items:center"><div id=mode-tag>MODE :: SURVIVE</div></div>
 </div>
 <div id=crosshair><div id=crosshair-ring></div><div id=crosshair-dot></div></div>
-<div id=player-list><div class=pl-ttl>UNITS // LIVE</div><div id=pl-list-body></div></div>
 <div id=killfeed></div>
 <div id=radar><canvas id=radar-canvas width=180 height=180></canvas></div>
 <div id=base-timer><div id=base-timer-title>BASE OFFLINE</div><div id=base-timer-val>3:00</div><div id=base-timer-sub>REBUILDING</div></div>
@@ -180,7 +170,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;background:var(--acce
 <div class=panel-block id=velocity-block><div class=lbl>VELOCITY</div><div class=val id=vel-val>0.0</div></div>
 </div>
 <div id=controls-hint>
-<span><span class=key>W</span>ACCEL</span><span><span class=key>S</span>REV</span><span><span class=key>MOUSE</span>AIM</span><span><span class=key>LMB</span>HOLD / RELEASE</span><span><span class=key>RMB</span>HEAVY MG</span><span><span class=key>ESC</span>MENU</span>
+<span><span class=key>W</span>ACCEL</span><span><span class=key>S</span>REV</span><span><span class=key>A</span><span class=key>D</span>STEER</span><span><span class=key>MOUSE</span>AIM</span><span><span class=key>LMB</span>HOLD / RELEASE</span><span><span class=key>RMB</span>HEAVY MG</span><span><span class=key>ESC</span>MENU</span>
 </div>
 </div>
 <div id=menu>
@@ -193,7 +183,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;background:var(--acce
 <div class=divider></div>
 <div id=boot-screen>
 <div id=boot-stage><div id=boot-label>SYSTEM BOOT</div><div id=boot-track><div id=boot-fill></div></div><div id=boot-pct>0%</div></div>
-<button class=boot-start-big id=boot-start style="display:none"><div class=idx>// READY</div><div class=name>START</div><div class=desc>CLICK TO BEGIN SURVIVE OPERATION</div></button>
+<button class=boot-start-big id=boot-start style="display:none"><div class=name>START</div></button>
 </div>
 <div id=menu-foot><span>EDITION // 0.0.1</span><span>OPEN MENU //  ≡  TOP-RIGHT</span><span>TIMESTAMP // <span id=boot-ts></span></span></div>
 </div>
@@ -243,17 +233,13 @@ const ICO_VERTS=(()=>{const p=(1+Math.sqrt(5))/2,v=[[-1,p,0],[1,p,0],[-1,-p,0],[
 const ICO_FACES=[0,11,5, 0,5,1, 0,1,7, 0,7,10, 0,10,11, 1,5,9, 5,11,4, 11,10,2, 10,7,6, 7,1,8, 3,9,4, 3,4,2, 3,2,6, 3,6,8, 3,8,9, 4,9,5, 2,4,11, 6,2,10, 8,6,7, 9,8,1];
 function rockGeo(radius,jitterAmt,rngFn){const j=jitterAmt,verts=new Float32Array(12*3);for(let i=0;i<12;i++){const[x,y,z]=ICO_VERTS[i];const jx=(rngFn()-.5)*j*2,jy=(rngFn()-.5)*j*2,jz=(rngFn()-.5)*j*2;verts[i*3]=x*radius+jx;verts[i*3+1]=y*radius+jy;verts[i*3+2]=z*radius+jz}const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(verts,3));g.setIndex(ICO_FACES);g.computeVertexNormals();return g}
 // ===== CONFIG =====
-const CFG={startRound:1,roundBreak:3,baseRecover:180,aiSkill:60,aiFire:3.5,speed:12,rspeed:6,accel:8,turn:1.8,hp:100,bodyScale:1,barrelScale:.8,wheelSize:.5,gravity:14,power:55,minPower:12,charge:2.4,minCharge:10,fireRate:1,drag:.02,mass:1,blast:5,dmg:35,mgRange:15,mgRate:3,mgDmg:.28,mgEnemyMult:2,tracerSpeed:220,tracerLen:1.6,tracerThick:.018,tracerGlow:1,hmgRate:12,hmgDmg:.35,hmgRange:60,heliEnabled:true,heliInterval:25,heliHp:18,heliDmg:.2,heliDropChance:1,heliRocketInterval:4.5,heliRocketDmg:18,heliRocketSpeed:38,heliRocketBlast:4.5,treeHp:2,rockHp:4,baseHp:200,baseRegen:6,fieldSize:272,rough:.55,trees:320,rocks:60,rivers:1,seed:1024,palette:0,wire:.55,fill:.92,grid:.35,fog:0,bright:150,contrast:110,zoom:28,camRot:45,showCross:true,showList:true,showHint:true,hpAlpha:1,volMaster:70,volFire:80,volBoom:85,volCharge:50,volUi:40,volAmb:25,sfxProfile:'punchy',mapBrush:'tree',brushVariety:.5,smpCannon:'synth',smpMg:'synth',smpLoad:'none',smpBoom:'synth',smpImpact:'none',smpIdle:'synth',smpDrive:'none',smpUi:'synth'};
+const CFG={startRound:1,roundBreak:3,baseRecover:180,aiSkill:60,aiFire:3.5,speed:12,rspeed:6,accel:8,turn:1.8,hp:100,bodyScale:1,barrelScale:.8,wheelSize:.5,gravity:14,power:55,minPower:12,charge:2.4,minCharge:10,fireRate:1,drag:.02,mass:1,blast:5,dmg:35,mgRange:15,mgRate:3,mgDmg:.28,mgEnemyMult:2,tracerSpeed:220,tracerLen:1.6,tracerThick:.018,tracerGlow:1,hmgRate:12,hmgDmg:.35,hmgRange:60,heliEnabled:true,heliInterval:25,heliHp:18,heliDmg:.2,heliDropChance:1,heliRocketInterval:4.5,heliRocketDmg:18,heliRocketSpeed:38,heliRocketBlast:4.5,treeHp:2,rockHp:4,baseHp:200,baseRegen:6,fieldSize:272,rough:.55,trees:320,rocks:60,rivers:1,seed:1024,palette:0,wire:.55,fill:.92,grid:.35,fog:0,bright:150,contrast:110,zoom:28,camRot:45,showCross:true,showList:true,showHint:true,hpAlpha:1,volMaster:70,volFire:80,volBoom:85,volCharge:50,volUi:40,volAmb:25,sfxProfile:'punchy',mapBrush:'tree',brushVariety:5,smpCannon:'05_cannon',smpMg:'synth',smpLoad:'01_idle',smpBoom:'synth',smpImpact:'11_hull_hit',smpIdle:'none',smpDrive:'none',smpUi:'synth'};
 const CFG_DEFAULTS=JSON.parse(JSON.stringify(CFG));
 const PALETTES=[
-{name:'DUSK',bg:'#1c2024',ground:'#5a5a48',accent:'#b8794a',line:'#a39c83',p1:'#5b7280',p2:'#a3614a',p3:'#8a6e44',p4:'#5e7560',sky:'#2b3138'},
-{name:'OLIVE',bg:'#1d201a',ground:'#5e6042',accent:'#9aaf6a',line:'#a8a983',p1:'#6f7a4c',p2:'#a35a4a',p3:'#8b8753',p4:'#5e6e5a',sky:'#252820'},
-{name:'STEEL',bg:'#1a1e22',ground:'#4a525a',accent:'#7e9dab',line:'#9aa3ad',p1:'#5b6e80',p2:'#8e5a52',p3:'#7a7569',p4:'#5e6b6d',sky:'#222830'},
-{name:'RUST',bg:'#211a17',ground:'#6b4a39',accent:'#c97a44',line:'#b89878',p1:'#7a5544',p2:'#a8482e',p3:'#8a6e3a',p4:'#5a5040',sky:'#2a201c'},
-{name:'MIDNIGHT',bg:'#161922',ground:'#3d4256',accent:'#8a92c8',line:'#8088a0',p1:'#525e7e',p2:'#7a4e6a',p3:'#6a6485',p4:'#475560',sky:'#1d2030'}];
+{name:'DUSK',bg:'#1c2024',ground:'#5a5a48',accent:'#b8794a',line:'#a39c83',p1:'#5b7280',p2:'#a3614a',p3:'#8a6e44',p4:'#5e7560',sky:'#2b3138'}];
 function applyPaletteToDOM(){const p=PALETTES[CFG.palette],r=document.documentElement;r.style.setProperty('--bg-0',p.bg);r.style.setProperty('--line',p.line);r.style.setProperty('--accent',p.accent);r.style.setProperty('--p1',p.p1);r.style.setProperty('--p2',p.p2)}
 // ===== DOM =====
-const dom={menu:$('#menu'),panel:$('#panel'),hamburger:$('#hamburger'),hud:$('#hud'),crosshair:$('#crosshair'),chargeFill:$('#charge-fill'),hpVal:$('#hp-val'),velVal:$('#vel-val'),modeTag:$('#mode-tag'),roundVal:$('#round-val'),roundHostiles:$('#round-hostiles'),runTime:$('#run-time'),baseStatus:$('#base-status'),message:$('#message'),msgMain:$('#msg-main'),msgSub:$('#msg-sub'),killfeed:$('#killfeed'),radar:$('#radar'),radarCanvas:$('#radar-canvas'),baseTimer:$('#base-timer'),baseTimerVal:$('#base-timer-val'),plBody:$('#pl-list-body'),bottombar:$('#bottombar'),topbar:$('#topbar'),hint:$('#controls-hint'),playerList:$('#player-list')};
+const dom={menu:$('#menu'),panel:$('#panel'),hamburger:$('#hamburger'),hud:$('#hud'),crosshair:$('#crosshair'),chargeFill:$('#charge-fill'),hpVal:$('#hp-val'),velVal:$('#vel-val'),modeTag:$('#mode-tag'),roundVal:$('#round-val'),roundHostiles:$('#round-hostiles'),runTime:$('#run-time'),baseStatus:$('#base-status'),message:$('#message'),msgMain:$('#msg-main'),msgSub:$('#msg-sub'),killfeed:$('#killfeed'),radar:$('#radar'),radarCanvas:$('#radar-canvas'),baseTimer:$('#base-timer'),baseTimerVal:$('#base-timer-val'),bottombar:$('#bottombar'),topbar:$('#topbar'),hint:$('#controls-hint')};
 document.getElementById('boot-ts').textContent=new Date().toISOString().replace('T',' ').slice(0,19);
 // ===== SFX =====
 // Sample manifest — files loaded from ./sfx/ on first SFX init.
@@ -685,8 +671,7 @@ function showGameOver(t,s){$('#gameover-title').textContent=t;$('#gameover-sub')
 function hideGameOver(){$('#gameover-modal').classList.remove('show')}
 function showMessage(m,s,persist=false){dom.msgMain.textContent=m;dom.msgSub.textContent=s;dom.message.classList.add('show');if(!persist)setTimeout(()=>dom.message.classList.remove('show'),2200)}
 function addKillFeed(text){const el=document.createElement('div');el.className='kill-line';el.textContent=text;dom.killfeed.prepend(el);setTimeout(()=>el.remove(),5000);while(dom.killfeed.children.length>6)dom.killfeed.lastChild.remove()}
-function updatePlayerList(){if(!CFG.showList){dom.playerList.style.display='none';return}dom.playerList.style.display='';dom.plBody.innerHTML='';
-ENTITIES.tanks.forEach(t=>{const row=document.createElement('div');row.className='pl-row'+(t.dead?' dead':'');const c=document.createElement('div');c.className='pl-color';c.style.background='#'+t.color.getHexString();const n=document.createElement('div');n.className='pl-name';n.textContent=t.name+(t.isPlayer?' :: YOU':t.isAI?' :: AI':'');const hp=document.createElement('div');hp.className='pl-hp';hp.textContent=t.dead?'KIA':Math.max(0,Math.round(t.hp))+'/'+t.maxHp;row.append(c,n,hp);dom.plBody.appendChild(row)})}
+function updatePlayerList(){}
 let radarSweep=0;
 function drawRadar(){if(!dom.radarCanvas)return;const c=dom.radarCanvas,ctx=c.getContext('2d'),w=c.width,h=c.height,cx=w/2,cy=h/2,radius=Math.min(w,h)/2-2;ctx.clearRect(0,0,w,h);
 ctx.fillStyle='rgba(0,0,0,0.55)';ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.fill();
@@ -759,10 +744,10 @@ const rock={x,z,y:gy-sk,r:rad,mesh:rm,hp:CFG.rockHp*Math.max(1,Math.round(rad/1.
 const MapEditor={enabled:false,brush:'tree',radius:3,spacing:2,lastPaint:null,mouseDown:false,cursorMesh:null};
 function ensureEditorCursor(){if(MapEditor.cursorMesh)return MapEditor.cursorMesh;const rg=new T.RingGeometry(.95,1,36);rg.rotateX(-Math.PI/2);const rm=bmat(0xffa050,{transparent:true,opacity:.8,side:DS,depthTest:false});const ring=mesh(rg,rm);ring.renderOrder=1000;ring.visible=false;scene.add(ring);MapEditor.cursorMesh=ring;return ring}
 function setEditorEnabled(on){MapEditor.enabled=!!on;const btn=document.getElementById('map-editor-toggle');if(btn)btn.textContent=MapEditor.enabled?'EDITOR :: ON':'EDITOR :: OFF';document.body.classList.toggle('editor-on',MapEditor.enabled);ensureEditorCursor().visible=MapEditor.enabled}
-function paintAtMouse(){const gp=getMouseGroundPoint();if(!gp)return;const r=MapEditor.radius,vr=CFG.brushVariety??.5;
+function paintAtMouse(){const gp=getMouseGroundPoint();if(!gp)return;const r=MapEditor.radius,vr=CFG.brushVariety??5;
 if(MapEditor.brush==='tree')spawnTreeAt(gp.x,gp.z);
-else if(MapEditor.brush==='rock-s'){const base=1.2,spread=1.6*vr;spawnRockAt(gp.x,gp.z,base+Math.random()*spread)}
-else if(MapEditor.brush==='rock-l'){const base=4,spread=3.5*vr;spawnRockAt(gp.x,gp.z,base+Math.random()*spread)}
+else if(MapEditor.brush==='rock-s'){const base=1.2,spread=.2*vr;spawnRockAt(gp.x,gp.z,base+Math.random()*spread)}
+else if(MapEditor.brush==='rock-l'){const base=4,spread=.4*vr;spawnRockAt(gp.x,gp.z,base+Math.random()*spread)}
 else if(MapEditor.brush==='erase'){for(let i=TERRAIN.trees.length-1;i>=0;i--){const t=TERRAIN.trees[i],dx=t.x-gp.x,dz=t.z-gp.z;if(dx*dx+dz*dz<r*r){scene.remove(t.mesh);t.mesh.traverse(o=>o.geometry?.dispose?.());TERRAIN.trees.splice(i,1)}}for(let i=TERRAIN.rocks.length-1;i>=0;i--){const rk=TERRAIN.rocks[i],dx=rk.x-gp.x,dz=rk.z-gp.z;if(dx*dx+dz*dz<(r+rk.r)*(r+rk.r)){scene.remove(rk.mesh);rk.mesh.geometry?.dispose?.();TERRAIN.rocks.splice(i,1)}}}
 MapEditor.lastPaint=gp.clone()}
 function maybePaintAtMouse(){const gp=getMouseGroundPoint();if(!gp)return;if(MapEditor.lastPaint){const dx=gp.x-MapEditor.lastPaint.x,dz=gp.z-MapEditor.lastPaint.z;if(dx*dx+dz*dz<MapEditor.spacing*MapEditor.spacing)return}paintAtMouse()}
@@ -858,7 +843,7 @@ style:[
 ['PALETTE',[['sw','palette','COLOR PALETTE']]],
 ['WIRE & FILL',[['sl','wire','WIRE OPACITY',0,1,.05,F2,VIS_CB],['sl','fill','FILL OPACITY',.3,1,.05,F2,VIS_CB],['sl','grid','GRID OPACITY',0,1,.05,F2,VIS_CB],['sl','fog','FOG',0,.02,.001,F3,FOG_CB]]],
 ['CAMERA & POST',[['sl','bright','BRIGHTNESS',50,200,1,FMT],['sl','contrast','CONTRAST',50,200,1,FMT],['sl','zoom','ZOOM',10,120,1,FMT,ZOOM_CB],['sl','camRot','CAM ROTATION (°)',0,360,1,FMT],['sl','hpAlpha','HP BAR ALPHA',0,1,.05,F2,HPA_CB]]],
-['HUD',[['tg','showCross','CROSSHAIR'],['tg','showList','PLAYER LIST'],['tg','showHint','CONTROL HINTS']]],
+['HUD',[['tg','showCross','CROSSHAIR'],['tg','showHint','CONTROL HINTS']]],
 ],
 audio:[
 ['STATUS',[['sfxstatus']]],
@@ -870,7 +855,7 @@ audio:[
 map:[
 ['TERRAIN',[['sl','fieldSize','FIELD SIZE',96,512,8,FMT],['sl','rough','TERRAIN ROUGHNESS',.1,2,.05,F2],['sl','trees','TREE COUNT',0,1200,10,FMT],['sl','rocks','ROCK COUNT',0,400,5,FMT],['sl','rivers','RIVER COUNT',0,3,1,FI],['sl','seed','SEED',1,9999,1,FMT]]],
 ['DESTRUCTIBLES',[['sl','treeHp','TREE HP',1,10,1,FMT],['sl','rockHp','ROCK HP',1,20,1,FMT]]],
-['EDITOR',[['br'],['sl','brushVariety','BRUSH VARIETY',0,1,.05,F2]]],
+['EDITOR',[['br']]],
 ['IMPORT / EXPORT',[['ta']]],
 ],
 };
@@ -891,6 +876,7 @@ if(t==='br'){return `<div class=btn-row><button class=btn id=map-editor-toggle>E
 <div class=field style="margin-top:14px"><div class=field-row><div class=field-label>BRUSH</div></div><div class=seg id=seg-brush><button data-v=tree class=on>TREE</button><button data-v=rock-s>ROCK S</button><button data-v=rock-l>ROCK L</button><button data-v=erase>ERASE</button></div></div>
 <div class=field><div class=field-row><div class=field-label>BRUSH RADIUS</div><div class=field-val id=lbl-brushR>3.0</div></div><input type=range id=cfg-brushR min=1 max=12 step=.5 value=3></div>
 <div class=field><div class=field-row><div class=field-label>BRUSH SPACING</div><div class=field-val id=lbl-brushSpacing>2.00</div></div><input type=range id=cfg-brushSpacing min=.5 max=8 step=.1 value=2></div>
+<div class=field><div class=field-row><div class=field-label>BRUSH VARIETY</div><div class=field-val id=lbl-brushVariety>${CFG.brushVariety}</div></div><input type=range id=cfg-brushVariety min=0 max=10 step=1 value=${CFG.brushVariety}></div>
 <div class=btn-row style="margin-top:6px"><button class=btn id=map-clear-trees>CLEAR TREES</button><button class=btn id=map-clear-rocks>CLEAR ROCKS</button></div>
 <div class=btn-row style="margin-top:6px"><button class="btn danger" id=map-clear-all>CLEAR ALL</button></div>`}
 if(t==='ta'){return `<div class=btn-row><button class=btn id=map-export-json>EXPORT TO BOX</button><button class=btn id=map-export-download>DOWNLOAD .JSON</button></div>
@@ -927,7 +913,7 @@ const swEl=$('#palette-swatches');
 PALETTES.forEach((p,i)=>{const sw=document.createElement('div');sw.className='swatch'+(i===CFG.palette?' on':'');sw.style.background=`linear-gradient(135deg, ${p.bg} 0%, ${p.bg} 33%, ${p.ground} 33%, ${p.ground} 66%, ${p.accent} 66%)`;sw.title=p.name;sw.addEventListener('click',()=>{CFG.palette=i;$('#lbl-palette').textContent=p.name;$$('#palette-swatches .swatch').forEach(s=>s.classList.remove('on'));sw.classList.add('on');applyPaletteToDOM();if(gameState==='playing')generateBattlefield();sfx.ui(640,.05)});swEl.appendChild(sw)});
 $('#lbl-palette').textContent=PALETTES[CFG.palette].name;
 // match buttons
-function exitToMenu(){gameState='menu';dom.menu.style.display='';dom.message.classList.remove('show');hideGameOver();document.body.classList.remove('panel-open');dom.bottombar.style.display='none';dom.topbar.style.display='none';dom.crosshair.style.display='none';dom.hint.style.display='none';dom.playerList.style.display='none';if(dom.radar)dom.radar.style.display='none';if(dom.baseTimer)dom.baseTimer.style.display='none';dom.killfeed.innerHTML=''}
+function exitToMenu(){gameState='menu';dom.menu.style.display='';dom.message.classList.remove('show');hideGameOver();document.body.classList.remove('panel-open');dom.bottombar.style.display='none';dom.topbar.style.display='none';dom.crosshair.style.display='none';dom.hint.style.display='none';if(dom.radar)dom.radar.style.display='none';if(dom.baseTimer)dom.baseTimer.style.display='none';dom.killfeed.innerHTML=''}
 function resetAllConfig(){Object.keys(CFG_DEFAULTS).forEach(k=>{CFG[k]=CFG_DEFAULTS[k]});document.querySelectorAll('input[type=range][id^="cfg-"]').forEach(el=>{const key=el.id.replace('cfg-','');if(key in CFG){el.value=CFG[key];const lbl=$('#lbl-'+key);if(lbl)lbl.textContent=(FMTS[key]||FI)(CFG[key])}});document.querySelectorAll('select[id^="cfg-"]').forEach(el=>{const key=el.id.replace('cfg-','');if(key in CFG)el.value=CFG[key]});document.querySelectorAll('#seg-sfxProfile button').forEach(b=>b.classList.toggle('on',b.dataset.v===CFG.sfxProfile));document.querySelectorAll('#palette-swatches > div').forEach((sw,i)=>sw.classList.toggle('on',i===CFG.palette));$('#lbl-palette')&&($('#lbl-palette').textContent=PALETTES[CFG.palette].name);applyPaletteToDOM();if(scene.fog)scene.fog.density=CFG.fog;sfx.updateVolumes?.();sfx.applyEngine?.();applyVisuals();ENTITIES.tanks.forEach(t=>t.applyScales());addKillFeed('CONFIG :: ALL DEFAULTS RESTORED')}
 $('#btn-restart').addEventListener('click',()=>{sfx.ui(800,.06);startMatch()});
 function togglePause(){if(gameState==='playing'){gameState='paused';showMessage('PAUSED','PRESS BUTTON OR ESC TO RESUME',true);const b=$('#btn-pause');if(b)b.textContent='RESUME'}else if(gameState==='paused'){gameState='playing';dom.message.classList.remove('show');const b=$('#btn-pause');if(b)b.textContent='PAUSE'}}
@@ -946,18 +932,18 @@ attachEditorMouse();
 $('#map-editor-toggle')?.addEventListener('click',()=>{sfx.ui(700,.05);setEditorEnabled(!MapEditor.enabled)});
 bindSeg('#seg-brush','mapBrush',()=>{MapEditor.brush=CFG.mapBrush||'tree'});
 CFG.mapBrush='tree';
-{const r=$('#cfg-brushR'),rl=$('#lbl-brushR');if(r)r.addEventListener('input',()=>{MapEditor.radius=parseFloat(r.value);rl.textContent=MapEditor.radius.toFixed(1)});const s=$('#cfg-brushSpacing'),sl=$('#lbl-brushSpacing');if(s)s.addEventListener('input',()=>{MapEditor.spacing=parseFloat(s.value);sl.textContent=MapEditor.spacing.toFixed(2)})}
+{const r=$('#cfg-brushR'),rl=$('#lbl-brushR');if(r)r.addEventListener('input',()=>{MapEditor.radius=parseFloat(r.value);rl.textContent=MapEditor.radius.toFixed(1)});const s=$('#cfg-brushSpacing'),sl=$('#lbl-brushSpacing');if(s)s.addEventListener('input',()=>{MapEditor.spacing=parseFloat(s.value);sl.textContent=MapEditor.spacing.toFixed(2)});const v=$('#cfg-brushVariety'),vl=$('#lbl-brushVariety');if(v)v.addEventListener('input',()=>{CFG.brushVariety=parseInt(v.value);vl.textContent=CFG.brushVariety})}
 $('#map-clear-trees')?.addEventListener('click',()=>{sfx.ui(500,.05);for(const t of TERRAIN.trees){scene.remove(t.mesh);t.mesh.traverse(o=>o.geometry?.dispose?.())}TERRAIN.trees.length=0});
 $('#map-clear-rocks')?.addEventListener('click',()=>{sfx.ui(500,.05);for(const r of TERRAIN.rocks){scene.remove(r.mesh);r.mesh.geometry?.dispose?.()}TERRAIN.rocks.length=0});
 $('#map-clear-all')?.addEventListener('click',()=>{sfx.ui(400,.08);for(const t of TERRAIN.trees){scene.remove(t.mesh);t.mesh.traverse(o=>o.geometry?.dispose?.())}TERRAIN.trees.length=0;for(const r of TERRAIN.rocks){scene.remove(r.mesh);r.mesh.geometry?.dispose?.()}TERRAIN.rocks.length=0});
 $('#map-export-json')?.addEventListener('click',()=>{sfx.ui(700,.05);const d=exportMap(),ta=$('#map-json-area');if(ta)ta.value=JSON.stringify(d,null,2)});
 $('#map-export-download')?.addEventListener('click',()=>{sfx.ui(700,.05);const d=exportMap(),bl=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=`cannon-battle-map-${Date.now()}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(u),1000)});
 $('#map-import-json')?.addEventListener('click',()=>{const ta=$('#map-json-area');if(!ta||!ta.value.trim())return;try{importMap(JSON.parse(ta.value));sfx.ui(900,.06)}catch(e){sfx.ui(200,.1);console.error('Map import failed:',e);alert('Map import failed — check JSON syntax.')}});
-function applyVisuals(){dom.crosshair.style.display=(CFG.showCross&&gameState==='playing')?'':'none';dom.hint.style.display=CFG.showHint&&gameState==='playing'?'':'none';dom.playerList.style.display=CFG.showList&&gameState==='playing'?'':'none';scene.traverse(o=>{if(o.isLineSegments&&o.material)o.material.opacity=CFG.wire});if(TERRAIN.edges)TERRAIN.edges.material.opacity=CFG.wire*.4;if(TERRAIN.mesh)TERRAIN.mesh.material.opacity=CFG.fill;if(TERRAIN.gridMesh)TERRAIN.gridMesh.material.opacity=CFG.grid*.4;canvas.style.filter=`brightness(${CFG.bright/100}) contrast(${CFG.contrast/100})`}
+function applyVisuals(){dom.crosshair.style.display=(CFG.showCross&&gameState==='playing')?'':'none';dom.hint.style.display=CFG.showHint&&gameState==='playing'?'':'none';scene.traverse(o=>{if(o.isLineSegments&&o.material)o.material.opacity=CFG.wire});if(TERRAIN.edges)TERRAIN.edges.material.opacity=CFG.wire*.4;if(TERRAIN.mesh)TERRAIN.mesh.material.opacity=CFG.fill;if(TERRAIN.gridMesh)TERRAIN.gridMesh.material.opacity=CFG.grid*.4;canvas.style.filter=`brightness(${CFG.bright/100}) contrast(${CFG.contrast/100})`}
 function applyHpAlpha(){const a=CFG.hpAlpha;for(const t of ENTITIES.tanks)if(t.hpSprite){t.hpSprite.material.opacity=a;t.hpSprite.material.transparent=true;t.hpSprite.visible=a>.01&&!t.dead}for(const b of ENTITIES.basements)if(b.hpSprite){b.hpSprite.material.opacity=a;b.hpSprite.material.transparent=true;b.hpSprite.visible=a>.01&&!b.dead}}
 // ===== BOOTSTRAP =====
 applyPaletteToDOM();
-dom.crosshair.style.display='none';dom.hint.style.display='none';dom.playerList.style.display='none';dom.bottombar.style.display='none';dom.topbar.style.display='none';if(dom.radar)dom.radar.style.display='none';if(dom.baseTimer)dom.baseTimer.style.display='none';
+dom.crosshair.style.display='none';dom.hint.style.display='none';dom.bottombar.style.display='none';dom.topbar.style.display='none';if(dom.radar)dom.radar.style.display='none';if(dom.baseTimer)dom.baseTimer.style.display='none';
 scene.background=new C3(PALETTES[CFG.palette].sky);scene.fog=new T.FogExp2(PALETTES[CFG.palette].sky,CFG.fog);
 generateBattlefield();
 requestAnimationFrame(frame);
