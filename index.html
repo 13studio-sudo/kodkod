@@ -189,7 +189,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;background:var(--acce
 </div>
 </div>
 <div id=panel>
-<div id=panel-head><div><div class=ttl>SYSTEM PARAMETERS</div><div class=sub>RUNTIME CONTROL</div></div></div>
+<div id=panel-head><div><div class=ttl>SYSTEM PARAMETERS</div><div class=sub>RUNTIME CONTROL</div></div><button class=btn id=btn-popout style="flex:0 0 auto;padding:8px 12px;font-size:9px">↗ POP OUT</button></div>
 <div id=panel-tabs><div class="tab active" data-tab=game>GAME</div><div class=tab data-tab=physics>PHYS</div><div class=tab data-tab=style>STYLE</div><div class=tab data-tab=audio>SFX</div><div class=tab data-tab=map>MAP</div></div>
 <div id=panel-body>
 <div class="tab-pane active" data-pane=game id=pane-game></div>
@@ -227,13 +227,16 @@ const wireMat=k=>lmat(0xc8c0a8,{transparent:true,opacity:CFG.wire*k});
 const edge=(m,k)=>{m.add(new T.LineSegments(new T.EdgesGeometry(m.geometry),wireMat(k==null?1:k)));return m};
 const lerp=(a,b,t)=>a+(b-a)*t;
 const smooth=t=>t*t*(3-2*t);
+// MG damage falloff: very strong at point-blank, drops fast, long tail. Never zero (floor).
+// mult(d) = max(floor, peak / (1 + (d/k)^2))
+function mgFalloff(d){const k=CFG.mgFalloffK||2.3,peak=CFG.mgFalloffPeak||40,floor=CFG.mgFalloffFloor??.02;return Math.max(floor,peak/(1+(d/k)*(d/k)))}
 // ---- closed-edge icosahedron rock geometry: 12 indexed vertices, jittered ONCE each ----
 // (avoids the broken-edge artifact of non-indexed IcosahedronGeometry where each face has its own copies)
 const ICO_VERTS=(()=>{const p=(1+Math.sqrt(5))/2,v=[[-1,p,0],[1,p,0],[-1,-p,0],[1,-p,0],[0,-1,p],[0,1,p],[0,-1,-p],[0,1,-p],[p,0,-1],[p,0,1],[-p,0,-1],[-p,0,1]];const n=1/Math.sqrt(1+p*p);return v.map(([x,y,z])=>[x*n,y*n,z*n])})();
 const ICO_FACES=[0,11,5, 0,5,1, 0,1,7, 0,7,10, 0,10,11, 1,5,9, 5,11,4, 11,10,2, 10,7,6, 7,1,8, 3,9,4, 3,4,2, 3,2,6, 3,6,8, 3,8,9, 4,9,5, 2,4,11, 6,2,10, 8,6,7, 9,8,1];
 function rockGeo(radius,jitterAmt,rngFn){const j=jitterAmt,verts=new Float32Array(12*3);for(let i=0;i<12;i++){const[x,y,z]=ICO_VERTS[i];const jx=(rngFn()-.5)*j*2,jy=(rngFn()-.5)*j*2,jz=(rngFn()-.5)*j*2;verts[i*3]=x*radius+jx;verts[i*3+1]=y*radius+jy;verts[i*3+2]=z*radius+jz}const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(verts,3));g.setIndex(ICO_FACES);g.computeVertexNormals();return g}
 // ===== CONFIG =====
-const CFG={startRound:1,roundBreak:3,baseRecover:180,aiSkill:60,aiFire:3.5,speed:12,rspeed:6,accel:8,turn:1.8,hp:100,bodyScale:1,barrelScale:.8,wheelSize:.5,gravity:14,power:55,minPower:12,charge:2.4,minCharge:10,fireRate:1,drag:.02,mass:1,blast:5,dmg:35,mgRange:15,mgRate:3,mgDmg:.28,mgEnemyMult:2,tracerSpeed:220,tracerLen:1.6,tracerThick:.018,tracerGlow:1,hmgRate:12,hmgDmg:.35,hmgRange:60,heliEnabled:true,heliInterval:25,heliHp:18,heliDmg:.2,heliDropChance:1,heliRocketInterval:4.5,heliRocketDmg:18,heliRocketSpeed:38,heliRocketBlast:4.5,treeHp:2,rockHp:4,baseHp:200,baseRegen:6,fieldSize:272,rough:.55,trees:320,rocks:60,rivers:1,seed:1024,palette:0,wire:.55,fill:.92,grid:.35,fog:0,bright:150,contrast:110,zoom:28,camRot:45,showCross:true,showList:true,showHint:true,hpAlpha:1,volMaster:70,volFire:80,volBoom:85,volCharge:50,volUi:40,volAmb:25,sfxProfile:'punchy',mapBrush:'tree',brushVariety:5,smpCannon:'05_cannon',smpMg:'synth',smpLoad:'01_idle',smpBoom:'synth',smpImpact:'11_hull_hit',smpIdle:'none',smpDrive:'none',smpUi:'synth'};
+const CFG={startRound:1,roundBreak:3,baseRecover:180,aiSkill:60,aiFire:3.5,speed:12,rspeed:6,accel:8,turn:1.8,hp:100,bodyScale:1,barrelScale:.8,wheelSize:.5,gravity:14,power:55,minPower:12,charge:2.4,minCharge:10,fireRate:1,drag:.02,mass:1,blast:5,dmg:35,mgRange:15,mgRate:3,mgDmg:.28,mgEnemyMult:2,tracerSpeed:220,tracerLen:1.6,tracerThick:.018,tracerGlow:1,hmgRate:12,hmgDmg:.35,hmgRange:60,heliEnabled:true,heliInterval:25,heliHp:18,heliDmg:.2,heliDropChance:1,heliRocketInterval:4.5,heliRocketDmg:18,heliRocketSpeed:38,heliRocketBlast:4.5,treeHp:2,rockHp:4,baseHp:200,baseRegen:6,fieldSize:272,rough:.55,trees:320,rocks:60,rivers:1,seed:1024,palette:0,wire:.55,fill:.92,grid:.35,fog:0,bright:150,contrast:110,zoom:28,camRot:45,showCross:true,showList:true,showHint:true,hpAlpha:1,volMaster:70,volFire:80,volBoom:85,volCharge:50,volUi:40,volAmb:25,sfxProfile:'punchy',mapBrush:'tree',brushVariety:5,mgFalloffPeak:40,mgFalloffK:2.3,mgFalloffFloor:.02,smpCannon:'05_cannon',smpMg:'synth',smpLoad:'01_idle',smpBoom:'synth',smpImpact:'11_hull_hit',smpIdle:'none',smpDrive:'none',smpUi:'synth'};
 const CFG_DEFAULTS=JSON.parse(JSON.stringify(CFG));
 const PALETTES=[
 {name:'DUSK',bg:'#1c2024',ground:'#5a5a48',accent:'#b8794a',line:'#a39c83',p1:'#5b7280',p2:'#a3614a',p3:'#8a6e44',p4:'#5e7560',sky:'#2b3138'}];
@@ -365,7 +368,7 @@ else if(CFG.mgRange>0){const rSq=CFG.mgRange*CFG.mgRange;let near=null,bd=rSq;fo
 if(near){const dx=near.group.position.x-this.group.position.x,dz=near.group.position.z-this.group.position.z;this.mgYawTarget=Math.atan2(dx,dz)-this.turretYaw}else this.mgYawTarget+=dt*.4;
 let d=this.mgYawTarget-this.mgYaw;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;this.mgYaw+=d*Math.min(1,dt*6);this.mgGroup.rotation.y=this.mgYaw;const err=Math.abs(d);
 if(this._mgCD===undefined)this._mgCD=Math.random()*.3;this._mgCD-=dt;
-if(near&&CFG.mgRate>0&&this._mgCD<=0&&err<.18&&this.mgMuzzle){const fp=v3();this.mgMuzzle.getWorldPosition(fp);const sp=.6,toX=near.group.position.x+(Math.random()-.5)*sp,toY=near.group.position.y+1,toZ=near.group.position.z+(Math.random()-.5)*sp;spawnMgTracer(fp.x,fp.y,fp.z,toX,toY,toZ);let dc=0;if(player&&!player.dead){const dxc=fp.x-player.group.position.x,dzc=fp.z-player.group.position.z;dc=Math.sqrt(dxc*dxc+dzc*dzc)}sfx.mg(dc);const mu=this.team==='player'?1:(CFG.mgEnemyMult||1);near.damage(CFG.mgDmg*mu,`${this.name}/MG`);this._mgCD=1/CFG.mgRate}}}
+if(near&&CFG.mgRate>0&&this._mgCD<=0&&err<.18&&this.mgMuzzle){const fp=v3();this.mgMuzzle.getWorldPosition(fp);const sp=.6,toX=near.group.position.x+(Math.random()-.5)*sp,toY=near.group.position.y+1,toZ=near.group.position.z+(Math.random()-.5)*sp;spawnMgTracer(fp.x,fp.y,fp.z,toX,toY,toZ);let dc=0;if(player&&!player.dead){const dxc=fp.x-player.group.position.x,dzc=fp.z-player.group.position.z;dc=Math.sqrt(dxc*dxc+dzc*dzc)}sfx.mg(dc);const mu=this.team==='player'?1:(CFG.mgEnemyMult||1);const dx=near.group.position.x-this.group.position.x,dz=near.group.position.z-this.group.position.z,dRange=Math.sqrt(dx*dx+dz*dz);near.damage(CFG.mgDmg*mu*mgFalloff(dRange),`${this.name}/MG`);this._mgCD=1/CFG.mgRate}}}
 this.group.position.x+=Math.sin(this.yaw)*this.vel*dt;this.group.position.z+=Math.cos(this.yaw)*this.vel*dt;
 if(this.wheels?.length){const wR=Math.max(.2,CFG.wheelSize??.5),aV=this.vel/wR;for(const w of this.wheels)w.rotation.x+=aV*dt}
 const pR=TERRAIN.size*.46,dC=Math.sqrt(this.group.position.x**2+this.group.position.z**2);if(dC>pR){const k=pR/dC;this.group.position.x*=k;this.group.position.z*=k;this.vel*=.3}
@@ -417,7 +420,7 @@ for(const h of ENTITIES.helicopters){if(h.dead)continue;const dx=h.group.positio
 const bY=this.group.rotation.y;
 for(const mg of this.mgs){if(mg.cooldown>0)mg.cooldown-=dt;if(nr){const wx=nr.group.position.x-this.x,wz=nr.group.position.z-this.z;mg.yawTarget=Math.atan2(wx,wz)-bY}else mg.yawTarget+=dt*.3;
 let d=mg.yawTarget-mg.yaw;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;mg.yaw+=d*Math.min(1,dt*5);mg.head.rotation.y=mg.yaw;
-if(nr&&CFG.mgRate>0&&mg.cooldown<=0){const fp=v3();mg.muzzle.getWorldPosition(fp);const toX=nr.group.position.x,toY=nr.group.position.y+(kd==='heli'?0:1),toZ=nr.group.position.z;spawnMgTracer(fp.x,fp.y,fp.z,toX,toY,toZ);let dc=0;if(player&&!player.dead){const dxc=fp.x-player.group.position.x,dzc=fp.z-player.group.position.z;dc=Math.sqrt(dxc*dxc+dzc*dzc)}sfx.mg(dc);nr.damage(CFG.mgDmg,`${this.name}/MG`);mg.cooldown=1/CFG.mgRate}}}
+if(nr&&CFG.mgRate>0&&mg.cooldown<=0){const fp=v3();mg.muzzle.getWorldPosition(fp);const toX=nr.group.position.x,toY=nr.group.position.y+(kd==='heli'?0:1),toZ=nr.group.position.z;spawnMgTracer(fp.x,fp.y,fp.z,toX,toY,toZ);let dc=0;if(player&&!player.dead){const dxc=fp.x-player.group.position.x,dzc=fp.z-player.group.position.z;dc=Math.sqrt(dxc*dxc+dzc*dzc)}sfx.mg(dc);const dx=nr.group.position.x-this.x,dz=nr.group.position.z-this.z,dRange=Math.sqrt(dx*dx+dz*dz);nr.damage(CFG.mgDmg*mgFalloff(dRange),`${this.name}/MG`);mg.cooldown=1/CFG.mgRate}}}
 if(CFG.baseRegen<=0)return;
 for(const t of ENTITIES.tanks){if(t.dead||t.team!==this.team)continue;const dx=t.group.position.x-this.x,dz=t.group.position.z-this.z;if(dx*dx+dz*dz<(this.r*.95)*(this.r*.95)){if(t.hp<t.maxHp){t.hp=Math.min(t.maxHp,t.hp+CFG.baseRegen*dt);t.drawHpBar()}}}}}
 // ===== HELICOPTER =====
@@ -726,8 +729,8 @@ let toX,toY,toZ;if(aimP){toX=aimP.x;toY=aimP.y;toZ=aimP.z}
 else{const gp=getMouseGroundPoint();if(!gp)return;const fx=player.group.position.x,fz=player.group.position.z,dxg=gp.x-fx,dzg=gp.z-fz,hd=Math.sqrt(dxg*dxg+dzg*dzg),reach=Math.min(range,Math.max(2,hd)),ux=hd>0?dxg/hd:0,uz=hd>0?dzg/hd:1;toX=fx+ux*reach;toY=1;toZ=fz+uz*reach}
 const fp=v3();if(player.mgMuzzle)player.mgMuzzle.getWorldPosition(fp);else fp.set(player.group.position.x,player.group.position.y+1.8,player.group.position.z);
 spawnMgTracer(fp.x,fp.y,fp.z,toX,toY,toZ);sfx.mg(0);
-if(aimE)aimE.damage(CFG.hmgDmg,'P1/HMG');
-else{const hRSq=4;for(const t of ENTITIES.tanks){if(t.dead||t.isPlayer||t.team==='player')continue;const ddx=t.group.position.x-toX,ddz=t.group.position.z-toZ;if(ddx*ddx+ddz*ddz<hRSq){t.damage(CFG.hmgDmg,'P1/HMG');break}}}
+if(aimE){const dx=aimE.group.position.x-player.group.position.x,dy=aimE.group.position.y-player.group.position.y,dz=aimE.group.position.z-player.group.position.z;aimE.damage(CFG.hmgDmg*mgFalloff(Math.sqrt(dx*dx+dy*dy+dz*dz)),'P1/HMG')}
+else{const hRSq=4;for(const t of ENTITIES.tanks){if(t.dead||t.isPlayer||t.team==='player')continue;const ddx=t.group.position.x-toX,ddz=t.group.position.z-toZ;if(ddx*ddx+ddz*ddz<hRSq){const dx=t.group.position.x-player.group.position.x,dz=t.group.position.z-player.group.position.z;t.damage(CFG.hmgDmg*mgFalloff(Math.sqrt(dx*dx+dz*dz)),'P1/HMG');break}}}
 hmgCooldown=1/Math.max(1,CFG.hmgRate||12)}
 // ===== MAP EDITOR =====
 function spawnTreeAt(x,z){if(!TERRAIN.palette||!TERRAIN.palette.trunkCol)return null;const pal=TERRAIN.palette,gy=terrainHeightAt(x,z),trunkH=1.2+Math.random()*.8,trunkR=.15+Math.random()*.13,foliageH=2.2+Math.random()*1.6,foliageR=1+Math.random()*.6,totalH=trunkH+foliageH;
@@ -834,7 +837,7 @@ game:[
 physics:[
 ['VEHICLE',[['sl','speed','FORWARD SPEED',1,30,1,FI],['sl','rspeed','REVERSE SPEED',1,20,1,FI],['sl','accel','ACCEL',1,30,1,FI],['sl','turn','TURN SPEED',.2,5,.1,F1],['sl','hp','HP',10,500,5,FI],['sl','bodyScale','BODY SCALE',.5,2,.05,F2,SCALE_CB],['sl','barrelScale','BARREL SCALE',.5,2.5,.05,F2,SCALE_CB],['sl','wheelSize','WHEEL SIZE',.2,1.2,.05,F2,WHEEL_CB]]],
 ['CANNON',[['sl','gravity','GRAVITY',1,40,.5,F1],['sl','power','MAX POWER',10,150,1,FI],['sl','minPower','MIN POWER',1,80,1,FI],['sl','charge','CHARGE TIME',.5,8,.1,F1],['sl','minCharge','MIN CHARGE%',0,100,1,FI],['sl','fireRate','FIRE COOLDOWN',.1,5,.05,F2],['sl','drag','DRAG',0,.1,.001,F3],['sl','mass','MASS',.1,5,.1,F1],['sl','blast','BLAST RADIUS',1,15,.5,F1],['sl','dmg','BASE DAMAGE',5,200,1,FI]]],
-['MACHINE GUN',[['sl','mgRange','MG RANGE',0,60,1,FI],['sl','mgRate','MG RATE/S',0,12,1,FI],['sl','mgDmg','MG DMG/HIT',0,5,.05,F2],['sl','mgEnemyMult','MG ENEMY MULT',1,5,.1,F1],['sl','tracerSpeed','TRACER SPEED',40,400,10,FI],['sl','tracerLen','TRACER LEN',.4,3,.1,F1],['sl','tracerThick','TRACER THICK',.005,.06,.001,F2],['sl','tracerGlow','TRACER GLOW',0,2,.1,F1]]],
+['MACHINE GUN',[['sl','mgRange','MG RANGE',0,60,1,FI],['sl','mgRate','MG RATE/S',0,12,1,FI],['sl','mgDmg','MG DMG/HIT',0,5,.05,F2],['sl','mgEnemyMult','MG ENEMY MULT',1,5,.1,F1],['sl','mgFalloffPeak','FALLOFF PEAK (0M MULT)',1,80,1,FI],['sl','mgFalloffK','FALLOFF HALF-DIST K',.5,15,.1,F1],['sl','mgFalloffFloor','FALLOFF FLOOR',0,.5,.01,F2],['sl','tracerSpeed','TRACER SPEED',40,400,10,FI],['sl','tracerLen','TRACER LEN',.4,3,.1,F1],['sl','tracerThick','TRACER THICK',.005,.06,.001,F2],['sl','tracerGlow','TRACER GLOW',0,2,.1,F1]]],
 ['HEAVY MG (RMB)',[['sl','hmgRate','HMG RATE/S',1,30,1,FI],['sl','hmgDmg','HMG DMG/HIT',.05,3,.05,F2],['sl','hmgRange','HMG RANGE',10,120,1,FI]]],
 ['HELICOPTERS',[['tg','heliEnabled','HELI SPAWNS'],['sl','heliInterval','HELI SPAWN INTERVAL',5,90,1,FI],['sl','heliHp','HELI HP',5,80,1,FI],['sl','heliDmg','HELI DMG/HIT',0,3,.05,F2],['sl','heliDropChance','MEDKIT DROP CHANCE',0,1,.05,F2],['sl','heliRocketInterval','HELI ROCKET CADENCE',1.5,12,.1,F1],['sl','heliRocketDmg','HELI ROCKET DMG',0,80,1,FI],['sl','heliRocketSpeed','ROCKET SPEED',12,80,1,FI],['sl','heliRocketBlast','ROCKET BLAST',1,9,.1,F1]]],
 ['BASE',[['sl','baseHp','BASE HP',50,1000,10,FMT,BASE_CB],['sl','baseRegen','BASE REGEN/S',0,40,1,FI]]],
@@ -886,7 +889,252 @@ return ''}
 for(const[paneId,groups]of Object.entries(PANEL)){const root=$('#pane-'+paneId);if(!root)continue;root.innerHTML=groups.map(([gT,fs])=>groupTpl(gT,fs.map(fieldHtml).join(''))).join('')}}
 buildPanel();
 // hamburger
-dom.hamburger.addEventListener('click',()=>{document.body.classList.toggle('panel-open');sfx.ui(700,.06)});
+dom.hamburger.addEventListener('click',()=>{if(devPopout&&!devPopout.closed){devPopout.focus();return}document.body.classList.toggle('panel-open');sfx.ui(700,.06)});
+// ===== DEV POPOUT (second window) =====
+// Expose what the popout needs to read/write live. Same-origin so the popout reads opener.* directly — CFG is shared by REFERENCE, not copied.
+let devPopout=null,devPopoutPoll=null;
+// ===== PRESET PACK (zip of cfg.json + meta.json + optional map.json) =====
+const KODKOD_VERSION='0.0.1';
+// JSZip is loaded lazily so the CDN can't block initial page load.
+let _jszipPromise=null;
+function ensureJSZip(){
+if(typeof window.JSZip!=='undefined')return Promise.resolve(window.JSZip);
+if(_jszipPromise)return _jszipPromise;
+_jszipPromise=new Promise((resolve,reject)=>{
+const s=document.createElement('script');s.src='https://unpkg.com/jszip@3.10.1/dist/jszip.min.js';
+const timeout=setTimeout(()=>{s.remove();reject(new Error('JSZip CDN timeout (10s) — check network'))},10000);
+s.onload=()=>{clearTimeout(timeout);if(window.JSZip)resolve(window.JSZip);else reject(new Error('JSZip loaded but global not found'))};
+s.onerror=()=>{clearTimeout(timeout);s.remove();reject(new Error('JSZip CDN failed to load — check network/firewall'))};
+document.head.appendChild(s)});
+return _jszipPromise}
+function buildPresetObj(includeMap,name){
+const cfgFiltered={};for(const k of Object.keys(CFG_DEFAULTS))if(k in CFG)cfgFiltered[k]=CFG[k];
+const changed={};for(const k of Object.keys(CFG_DEFAULTS)){const a=cfgFiltered[k],b=CFG_DEFAULTS[k];if(JSON.stringify(a)!==JSON.stringify(b))changed[k]={from:b,to:a}}
+const meta={editor:'KODKOD-DEV-PANEL',version:KODKOD_VERSION,name:name||'PRESET',createdAt:new Date().toISOString(),cfgKeyCount:Object.keys(cfgFiltered).length,changedCount:Object.keys(changed).length,includesMap:!!includeMap};
+return{meta,cfg:cfgFiltered,map:includeMap?exportMap():null,changed}}
+async function exportPresetZip(includeMap,name){
+const JSZip=await ensureJSZip();
+const{meta,cfg,map}=buildPresetObj(includeMap,name);
+const zip=new JSZip();
+zip.file('meta.json',JSON.stringify(meta,null,2));
+zip.file('cfg.json',JSON.stringify(cfg,null,2));
+if(map)zip.file('map.json',JSON.stringify(map,null,2));
+const safeName=(name||'preset').toLowerCase().replace(/[^a-z0-9_-]+/g,'-').replace(/^-|-$/g,'')||'preset';
+const fname=`kodkod-preset-${safeName}-${KODKOD_VERSION}.zip`;
+const blob=await zip.generateAsync({type:'blob'});
+const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(url),1000);
+addKillFeed(`PRESET EXPORTED // ${fname}`);return fname}
+async function importPresetZip(file,opts={}){
+const JSZip=await ensureJSZip();
+const zip=await JSZip.loadAsync(file);
+const metaFile=zip.file('meta.json'),cfgFile=zip.file('cfg.json'),mapFile=zip.file('map.json');
+if(!metaFile||!cfgFile)throw new Error('Invalid preset: missing meta.json or cfg.json');
+const meta=JSON.parse(await metaFile.async('string')),cfg=JSON.parse(await cfgFile.async('string'));
+const result={meta,applied:0,skipped:[],unknownKeys:[]};
+if(meta.version!==KODKOD_VERSION&&!opts.skipVersionCheck){
+const knownCfgKeys=new Set(Object.keys(CFG_DEFAULTS)),presetKeys=Object.keys(cfg);
+const missingInPreset=[...knownCfgKeys].filter(k=>!(k in cfg)),unknownInPreset=presetKeys.filter(k=>!knownCfgKeys.has(k));
+const msg=`Preset version: ${meta.version||'?'}\nThis build: ${KODKOD_VERSION}\n\nNew keys in this build that preset doesn't have (will keep current values): ${missingInPreset.length}\nKeys in preset no longer in this build (will be ignored): ${unknownInPreset.length}\n\nContinue with import?`;
+if(!confirm(msg))return{...result,cancelled:true}}
+// Strict overlay: only set keys that exist in CFG_DEFAULTS
+for(const[k,v]of Object.entries(cfg)){if(k in CFG_DEFAULTS){CFG[k]=v;result.applied++}else result.unknownKeys.push(k)}
+// Apply map if present and user opted to
+if(mapFile&&opts.applyMap){const mapData=JSON.parse(await mapFile.async('string'));importMap(mapData);result.mapApplied=true}
+// Trigger broad re-application so live game reflects new state
+applyPaletteToDOM();applyVisuals();applyHpAlpha();sfx.updateVolumes?.();sfx.applyEngine?.();if(scene.fog)scene.fog.density=CFG.fog;ENTITIES.tanks.forEach(t=>t.applyScales());onResize();
+addKillFeed(`PRESET IMPORTED // ${meta.name||'PRESET'} (${result.applied} keys)`);
+return result}
+// Refresh main-window panel widgets to reflect new CFG (called by popout after import)
+function refreshMainPanelFromCfg(){
+document.querySelectorAll('input[type=range][id^="cfg-"]').forEach(el=>{const k=el.id.replace('cfg-','');if(k in CFG){el.value=CFG[k];const lbl=$('#lbl-'+k);if(lbl)lbl.textContent=(FMTS[k]||FI)(CFG[k])}});
+document.querySelectorAll('select[id^="cfg-"]').forEach(el=>{const k=el.id.replace('cfg-','');if(k in CFG)el.value=CFG[k]});
+document.querySelectorAll('.toggle-sw[data-cfg]').forEach(el=>{const k=el.dataset.cfg;if(k in CFG)el.classList.toggle('on',!!CFG[k])});
+['sfxProfile','mapBrush'].forEach(k=>{const seg=$('#seg-'+k);if(seg)seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===CFG[k]))});
+document.querySelectorAll('#palette-swatches > div').forEach((sw,i)=>sw.classList.toggle('on',i===CFG.palette));const pl=$('#lbl-palette');if(pl)pl.textContent=PALETTES[CFG.palette].name}
+Object.assign(window,{CFG,CFG_DEFAULTS,PANEL,PALETTES,SAMPLE_FILES,FMTS,FI,FMT,F1,F2,F3,SMP_KIND,sfx,applyVisuals,applyHpAlpha,applyPaletteToDOM,generateBattlefield,resetAllConfig,onResize,getMapEditor:()=>MapEditor,exportMap,importMap,startMatch,togglePauseFromPopout:()=>{const b=$('#btn-pause');if(b)b.click()},exportPresetZip,importPresetZip,refreshMainPanelFromCfg,KODKOD_VERSION});
+function buildDevPopoutHtml(){return `<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><title>KODKOD // DEV PANEL</title>
+<style>
+:root{--bg-0:#1c2024;--bg-1:#262b30;--bg-2:#313840;--line:#8e8b78;--line-dim:#5a5a4f;--ink:#d8d2bd;--ink-dim:#9c9684;--accent:#b8794a;--danger:#a8483a;--ok:#7a8b5a}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Bahnschrift','DIN','Tahoma',sans-serif;text-transform:uppercase;border-radius:0!important;letter-spacing:.04em}
+input,select,option,textarea,button{text-transform:uppercase}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg-0);color:var(--ink);user-select:none}
+body{display:flex;flex-direction:column}
+#head{padding:14px 22px;border-bottom:1px solid var(--line-dim);background:var(--bg-1);display:flex;align-items:center;justify-content:space-between;flex:0 0 auto}
+#head .ttl{font-size:13px;color:var(--ink);letter-spacing:.25em;font-weight:600}
+#head .sub{font-size:9px;color:var(--ink-dim);letter-spacing:.3em;margin-top:3px}
+#head .right{display:flex;gap:8px;align-items:center}
+#status{font-size:9px;color:var(--ok);letter-spacing:.2em;padding:6px 10px;border:1px solid var(--ok)}
+#status.warn{color:var(--danger);border-color:var(--danger)}
+#wrap{flex:1;display:flex;overflow:hidden;min-height:0}
+#tabs{flex:0 0 140px;background:var(--bg-1);border-right:1px solid var(--line-dim);overflow-y:auto}
+.tab{padding:18px 16px;border-bottom:1px solid var(--line-dim);font-size:11px;color:var(--ink-dim);cursor:pointer;letter-spacing:.18em;transition:all .15s}
+.tab:hover{color:var(--ink);background:var(--bg-2)}
+.tab.active{color:var(--accent);background:var(--bg-0);border-left:3px solid var(--accent);padding-left:13px}
+.tab .sub{display:block;font-size:8px;color:var(--ink-dim);letter-spacing:.25em;margin-top:4px}
+#body{flex:1;overflow-y:auto;background:var(--bg-0)}
+#body::-webkit-scrollbar{width:8px}#body::-webkit-scrollbar-track{background:var(--bg-2)}#body::-webkit-scrollbar-thumb{background:var(--line-dim)}
+.pane{display:none;padding:0}
+.pane.active{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.pane[data-pane=audio].active,.pane[data-pane=map].active{grid-template-columns:1fr}
+.field-group{padding:18px 22px 14px;border-right:1px solid var(--line-dim);border-bottom:1px solid var(--line-dim)}
+.pane > .field-group:nth-child(2n){border-right:0}
+.field-group-ttl{font-size:9px;color:var(--accent);letter-spacing:.3em;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.field-group-ttl::after{content:'';flex:1;height:1px;background:var(--line-dim)}
+.field{margin-bottom:14px}.field:last-child{margin-bottom:0}
+.field-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.field-label{font-size:10px;color:var(--ink-dim);letter-spacing:.18em}
+.field-val{font-size:10px;color:var(--ink);font-family:'Bahnschrift',monospace;min-width:50px;text-align:right}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;background:transparent;height:18px;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:var(--line-dim);border:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:12px;height:12px;background:var(--accent);margin-top:-5px;border:1px solid var(--ink)}
+input[type=range]::-moz-range-track{height:2px;background:var(--line-dim);border:0}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;background:var(--accent);border:1px solid var(--ink)}
+.seg{display:flex;border:1px solid var(--line-dim)}
+.seg button{flex:1;padding:8px 4px;font-size:10px;background:transparent;border:0;border-right:1px solid var(--line-dim);color:var(--ink-dim);cursor:pointer;letter-spacing:.15em;transition:all .15s;font-family:inherit}
+.seg button:last-child{border-right:0}.seg button:hover{color:var(--ink)}
+.seg button.on{background:var(--accent);color:var(--bg-0)}
+.swatches{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.swatch{aspect-ratio:1;border:1px solid var(--line-dim);cursor:pointer;position:relative}
+.swatch.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--accent)}
+.btn-row{display:flex;gap:8px}
+.btn{flex:1;padding:11px 8px;background:transparent;border:1px solid var(--line);color:var(--ink);cursor:pointer;font-size:10px;letter-spacing:.18em;transition:all .15s;font-family:inherit}
+.btn:hover{background:var(--accent);color:var(--bg-0);border-color:var(--accent)}
+.btn.danger:hover{background:var(--danger);border-color:var(--danger)}
+.toggle{display:flex;align-items:center;justify-content:space-between}
+.toggle-sw{width:36px;height:18px;border:1px solid var(--line);position:relative;cursor:pointer;background:rgba(0,0,0,.3)}
+.toggle-sw::after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;background:var(--ink-dim);transition:all .2s}
+.toggle-sw.on{background:rgba(184,121,74,.2);border-color:var(--accent)}
+.toggle-sw.on::after{left:20px;background:var(--accent)}
+select.dropdown{width:100%;background:var(--bg-2);color:var(--ink);border:1px solid var(--line-dim);padding:6px 8px;font-size:10px;font-family:inherit;letter-spacing:.15em;text-transform:uppercase;cursor:pointer}
+textarea{background:rgba(0,0,0,.4);color:var(--ink);border:1px solid var(--line-dim);padding:6px;font-family:ui-monospace,monospace;font-size:10px;text-transform:none}
+#foot{flex:0 0 auto;padding:10px 22px;border-top:1px solid var(--line-dim);background:var(--bg-2);font-size:9px;color:var(--ink-dim);letter-spacing:.2em;display:flex;justify-content:space-between}
+</style></head><body>
+<div id=head>
+<div><div class=ttl>KODKOD // DEV PANEL</div><div class=sub>RUNTIME PARAMETERS // LIVE-LINKED TO MAIN WINDOW</div></div>
+<div class=right><div id=status>LINKED ✓</div><button class=btn id=btn-close-popout style="flex:0 0 auto;padding:8px 14px;font-size:9px">← BACK TO MAIN</button></div>
+</div>
+<div id=wrap>
+<div id=tabs></div>
+<div id=body></div>
+</div>
+<div id=foot><span id=foot-link>OPENER // CONNECTED</span><span>BUILD // 0.0.1</span><span id=foot-stamp></span></div>
+<script>
+(function(){
+const op=window.opener;
+const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
+function checkLink(){const stat=$('#status'),fl=$('#foot-link');if(!op||op.closed){stat.textContent='UNLINKED ✗';stat.classList.add('warn');fl.textContent='OPENER // GONE — CLOSE THIS WINDOW';return false}return true}
+if(!checkLink()){return}
+const CFG=op.CFG,PANEL=op.PANEL,PALETTES=op.PALETTES,SAMPLE_FILES=op.SAMPLE_FILES,FMTS=op.FMTS,FI=op.FI,SMP_KIND=op.SMP_KIND;
+// Build tabs (left strip) with friendly subtitles
+const TAB_INFO={game:'CAMPAIGN & AI',physics:'TUNING',style:'PALETTE & POST',audio:'SFX ROUTING',map:'TERRAIN & EDITOR'};
+const tabKeys=Object.keys(PANEL);
+$('#tabs').innerHTML=tabKeys.map((k,i)=>'<div class="tab'+(i===0?' active':'')+'" data-tab="'+k+'">'+k.toUpperCase()+'<span class=sub>'+(TAB_INFO[k]||'')+'</span></div>').join('');
+// Build panes
+function fieldHtml(f){
+const t=f[0];
+if(t==='sl'){const[,k,lab,mn,mx,st,fmt,cb]=f;FMTS[k]=fmt||FI;return '<div class=field><div class=field-row><div class=field-label>'+lab+'</div><div class=field-val id=lbl-'+k+'></div></div><input type=range id=cfg-'+k+' min='+mn+' max='+mx+' step='+st+'></div>'}
+if(t==='tg'){const[,k,lab]=f;return '<div class="field toggle"><div class=field-label>'+lab+'</div><div class="toggle-sw'+(CFG[k]?' on':'')+'" data-cfg='+k+'></div></div>'}
+if(t==='sg'){const[,k,lab,opts]=f;const btns=opts.map(function(o){return '<button data-v='+o[0]+(CFG[k]===o[0]?' class=on':'')+'>'+o[1]+'</button>'}).join('');return '<div class=field><div class=field-row><div class=field-label>'+lab+'</div></div><div class=seg id=seg-'+k+'>'+btns+'</div></div>'}
+if(t==='dd'){const[,k,lab]=f;const opts=[['synth','SYNTH'],['none','NONE']].concat(Object.keys(SAMPLE_FILES).map(function(s){return[s,s.toUpperCase().replace(/_/g,' ')]}));const cur=CFG[k];const optHtml=opts.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===cur?' selected':'')+'>'+o[1]+'</option>'}).join('');return '<div class=field><div class=field-row><div class=field-label>'+lab+'</div></div><select id=cfg-'+k+' class=dropdown>'+optHtml+'</select></div>'}
+if(t==='sfxstatus'){return '<div class=field><div class=field-row><div class=field-label>SAMPLES LOADED</div><div class=field-val id=sfx-load-status>—</div></div><div id=sfx-load-warn style="font-size:9px;color:var(--danger);letter-spacing:.15em;margin-top:4px;display:none"></div><div class=btn-row style="margin-top:8px"><button class=btn id=btn-sfx-reload>RELOAD SAMPLES</button></div></div>'}
+if(t==='sw'){return '<div class=field><div class=field-row><div class=field-label>COLOR PALETTE</div><div class=field-val id=lbl-palette></div></div><div class=swatches id=palette-swatches></div></div>'}
+if(t==='bt'){const[,kind]=f;if(kind==='match')return '<div class=btn-row><button class=btn id=btn-restart>RESTART</button><button class=btn id=btn-pause>PAUSE</button></div><div class=btn-row style="margin-top:8px"><button class=btn id=btn-regen>NEW MAP</button></div><div class=btn-row style="margin-top:8px"><button class="btn danger" id=btn-reset-all>RESET ALL DEFAULTS</button></div>';if(kind==='sfxtest')return '<div class=btn-row><button class=btn id=btn-test-fire>TEST FIRE</button><button class=btn id=btn-test-boom>TEST BOOM</button></div>'}
+if(t==='br'){return '<div class=btn-row><button class=btn id=map-editor-toggle>EDITOR :: '+(op.getMapEditor().enabled?'ON':'OFF')+'</button></div>'+
+'<div class=field style="margin-top:14px"><div class=field-row><div class=field-label>BRUSH</div></div><div class=seg id=seg-brush><button data-v=tree'+(CFG.mapBrush==='tree'?' class=on':'')+'>TREE</button><button data-v=rock-s'+(CFG.mapBrush==='rock-s'?' class=on':'')+'>ROCK S</button><button data-v=rock-l'+(CFG.mapBrush==='rock-l'?' class=on':'')+'>ROCK L</button><button data-v=erase'+(CFG.mapBrush==='erase'?' class=on':'')+'>ERASE</button></div></div>'+
+'<div class=field><div class=field-row><div class=field-label>BRUSH RADIUS</div><div class=field-val id=lbl-brushR>'+op.getMapEditor().radius.toFixed(1)+'</div></div><input type=range id=cfg-brushR min=1 max=12 step=.5 value='+op.getMapEditor().radius+'></div>'+
+'<div class=field><div class=field-row><div class=field-label>BRUSH SPACING</div><div class=field-val id=lbl-brushSpacing>'+op.getMapEditor().spacing.toFixed(2)+'</div></div><input type=range id=cfg-brushSpacing min=.5 max=8 step=.1 value='+op.getMapEditor().spacing+'></div>'+
+'<div class=field><div class=field-row><div class=field-label>BRUSH VARIETY</div><div class=field-val id=lbl-brushVariety>'+CFG.brushVariety+'</div></div><input type=range id=cfg-brushVariety min=0 max=10 step=1 value='+CFG.brushVariety+'></div>'+
+'<div class=btn-row style="margin-top:6px"><button class=btn id=map-clear-trees>CLEAR TREES</button><button class=btn id=map-clear-rocks>CLEAR ROCKS</button></div>'+
+'<div class=btn-row style="margin-top:6px"><button class="btn danger" id=map-clear-all>CLEAR ALL</button></div>'}
+if(t==='ta'){return '<div class=btn-row><button class=btn id=map-export-json>EXPORT TO BOX</button><button class=btn id=map-export-download>DOWNLOAD .JSON</button></div><textarea id=map-json-area style="margin-top:8px;width:100%;height:120px"></textarea><div class=btn-row style="margin-top:6px"><button class=btn id=map-import-json>IMPORT FROM BOX</button></div>'}
+return ''}
+const groupTpl=function(title,inner){return '<div class=field-group><div class=field-group-ttl>'+title+'</div>'+inner+'</div>'};
+let body='';for(const k of tabKeys){const groups=PANEL[k];body+='<div class="pane'+(k===tabKeys[0]?' active':'')+'" data-pane="'+k+'">'+groups.map(function(g){return groupTpl(g[0],g[1].map(fieldHtml).join(''))}).join('')+'</div>'}
+$('#body').innerHTML=body;
+// ---- PRESETS group (popout-only) ----
+const gamePane=$('[data-pane="game"]');
+if(gamePane){
+const presetHtml='<div class=field-group style="grid-column:1 / -1"><div class=field-group-ttl>PRESETS // SAVE &amp; LOAD</div>'+
+'<div class=field><div class=field-row><div class=field-label>NAME</div></div><input type=text id=preset-name value="PRESET" style="width:100%;background:var(--bg-2);color:var(--ink);border:1px solid var(--line-dim);padding:6px 8px;font-size:10px;font-family:inherit;letter-spacing:.15em;text-transform:uppercase"></div>'+
+'<div class="field toggle"><div class=field-label>INCLUDE MAP DATA</div><div class="toggle-sw" id=preset-include-map></div></div>'+
+'<div class=btn-row><button class=btn id=btn-preset-export>EXPORT .ZIP</button><button class=btn id=btn-preset-import>IMPORT .ZIP</button></div>'+
+'<input type=file id=preset-file-input accept=".zip,application/zip" style="display:none">'+
+'<div id=preset-status style="margin-top:8px;font-size:9px;color:var(--ink-dim);letter-spacing:.2em;min-height:11px"></div>'+
+'</div>';
+gamePane.insertAdjacentHTML('afterbegin',presetHtml);
+// wire
+const includeToggle=$('#preset-include-map');
+includeToggle.addEventListener('click',function(){if(!checkLink())return;includeToggle.classList.toggle('on');try{op.sfx.ui(560,.05)}catch(e){}});
+const setStat=function(msg,ok){const el=$('#preset-status');if(el){el.textContent=msg;el.style.color=ok===false?'var(--danger)':ok===true?'var(--ok)':'var(--ink-dim)'}};
+$('#btn-preset-export').addEventListener('click',async function(){if(!checkLink())return;try{op.sfx.ui(800,.06);const name=$('#preset-name').value||'PRESET',includeMap=includeToggle.classList.contains('on');setStat('BUILDING ZIP…',null);const fname=await op.exportPresetZip(includeMap,name);if(fname)setStat('EXPORTED // '+fname,true)}catch(e){console.error(e);setStat('EXPORT FAILED: '+e.message,false)}});
+const fileInput=$('#preset-file-input');
+$('#btn-preset-import').addEventListener('click',function(){if(!checkLink())return;op.sfx.ui(700,.05);fileInput.click()});
+fileInput.addEventListener('change',async function(e){if(!checkLink())return;const f=e.target.files&&e.target.files[0];if(!f)return;try{setStat('READING '+f.name+'…',null);const includeMap=includeToggle.classList.contains('on');const r=await op.importPresetZip(f,{applyMap:includeMap});if(r.cancelled){setStat('IMPORT CANCELLED',null);return}setStat('IMPORTED // '+(r.meta.name||'PRESET')+' — '+r.applied+' KEYS APPLIED'+(r.unknownKeys.length?', '+r.unknownKeys.length+' UNKNOWN':''),true);refreshAllPopoutWidgets();try{op.refreshMainPanelFromCfg()}catch(e2){}}catch(err){console.error(err);setStat('IMPORT FAILED: '+err.message,false)}fileInput.value=''});}
+// Refresh every widget in the popout to match current CFG (used after import)
+function refreshAllPopoutWidgets(){
+document.querySelectorAll('input[type=range][id^="cfg-"]').forEach(function(el){const k=el.id.replace('cfg-','');if(k in CFG){el.value=CFG[k];const lbl=document.getElementById('lbl-'+k);if(lbl)lbl.textContent=(FMTS[k]||FI)(CFG[k])}});
+document.querySelectorAll('select[id^="cfg-"]').forEach(function(el){const k=el.id.replace('cfg-','');if(k in CFG)el.value=CFG[k]});
+document.querySelectorAll('.toggle-sw[data-cfg]').forEach(function(el){const k=el.dataset.cfg;if(k in CFG)el.classList.toggle('on',!!CFG[k])});
+['sfxProfile','mapBrush'].forEach(function(k){const seg=document.getElementById('seg-'+k);if(seg)seg.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.dataset.v===CFG[k])})});
+document.querySelectorAll('#palette-swatches > div').forEach(function(sw,i){sw.classList.toggle('on',i===CFG.palette)});const pl=document.getElementById('lbl-palette');if(pl)pl.textContent=PALETTES[CFG.palette].name}
+// Tab switching
+$$('.tab').forEach(function(t){t.addEventListener('click',function(){if(!checkLink())return;$$('.tab').forEach(function(x){x.classList.remove('active')});$$('.pane').forEach(function(x){x.classList.remove('active')});t.classList.add('active');$('[data-pane="'+t.dataset.tab+'"]').classList.add('active');try{op.sfx.ui(500,.04)}catch(e){}})});
+// Bind sliders, segs, dropdowns by walking PANEL the same way the main window does
+function bindSlider(key,fmt,onChange){const el=$('#cfg-'+key),lbl=$('#lbl-'+key);if(!el)return;el.value=CFG[key];lbl.textContent=fmt(CFG[key]);el.addEventListener('input',function(){if(!checkLink())return;const v=parseFloat(el.value);CFG[key]=v;lbl.textContent=fmt(v);try{onChange&&onChange(v)}catch(e){console.warn(e)}})}
+function bindSeg(key,after){const seg=$('#seg-'+key);if(!seg)return;seg.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){if(!checkLink())return;seg.querySelectorAll('button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');CFG[key]=b.dataset.v;try{op.sfx.ui(600,.05);after&&after()}catch(e){}})})}
+function bindDD(key,after){const el=$('#cfg-'+key);if(!el)return;el.addEventListener('change',function(){if(!checkLink())return;CFG[key]=el.value;try{op.sfx.ensure();op.sfx.preview(el.value,SMP_KIND[key]||'fire');after&&after()}catch(e){}})}
+for(const k of tabKeys)for(const g of PANEL[k])for(const f of g[1]){const t=f[0];if(t==='sl'){bindSlider(f[1],f[6]||FI,f[7])}else if(t==='sg'){bindSeg(f[1])}else if(t==='dd'){bindDD(f[1],(f[1]==='smpIdle'||f[1]==='smpDrive')?function(){op.sfx.applyEngine()}:null)}}
+// Toggles
+$$('.toggle-sw').forEach(function(t){t.addEventListener('click',function(){if(!checkLink())return;t.classList.toggle('on');CFG[t.dataset.cfg]=t.classList.contains('on');try{op.sfx.ui(560,.05);op.applyVisuals()}catch(e){}})});
+// Palette swatches
+const sw=$('#palette-swatches');if(sw){PALETTES.forEach(function(p,i){const el=document.createElement('div');el.className='swatch'+(i===CFG.palette?' on':'');el.style.background='linear-gradient(135deg, '+p.bg+' 0%, '+p.bg+' 33%, '+p.ground+' 33%, '+p.ground+' 66%, '+p.accent+' 66%)';el.title=p.name;el.addEventListener('click',function(){if(!checkLink())return;CFG.palette=i;$('#lbl-palette').textContent=p.name;sw.querySelectorAll('.swatch').forEach(function(s){s.classList.remove('on')});el.classList.add('on');try{op.applyPaletteToDOM();op.sfx.ui(640,.05)}catch(e){}});sw.appendChild(el)});$('#lbl-palette').textContent=PALETTES[CFG.palette].name}
+// Match buttons
+function call(id,fn){const e=$('#'+id);if(e)e.addEventListener('click',function(){if(!checkLink())return;try{fn()}catch(e2){}})}
+call('btn-restart',function(){op.sfx.ui(800,.06);op.startMatch()});
+call('btn-pause',function(){op.sfx.ui(700,.05);op.togglePauseFromPopout&&op.togglePauseFromPopout()});
+call('btn-regen',function(){op.sfx.ui(700,.06);CFG.seed=Math.floor(Math.random()*9999)+1;const s=$('#cfg-seed'),l=$('#lbl-seed');if(s){s.value=CFG.seed;l.textContent=CFG.seed}if(op.startMatch)op.startMatch()});
+call('btn-reset-all',function(){op.sfx.ui(500,.07);op.resetAllConfig();setTimeout(function(){location.reload()},80)});
+call('btn-test-fire',function(){op.sfx.fire()});
+call('btn-test-boom',function(){op.sfx.explosion(1)});
+// SFX status
+function updateSfxStatus(){const el=$('#sfx-load-status'),warn=$('#sfx-load-warn');if(!el||!op.sfx)return;const s=op.sfx.loadStatus;if(!s)return;el.textContent=s.loaded+' / '+s.total+(s.inProgress?' …':'');el.style.color=s.loaded===s.total?'var(--ok)':s.loaded>0?'var(--ink)':'var(--danger)';if(warn){if(s.loaded===0&&!s.inProgress&&op.sfx.ctx){warn.style.display='block';warn.textContent='SFX FOLDER NOT REACHABLE — CHECK ./sfx/'}else if(s.failed&&s.failed.length&&!s.inProgress){warn.style.display='block';warn.textContent=s.failed.length+' SAMPLE(S) FAILED — SEE MAIN CONSOLE'}else warn.style.display='none'}}
+call('btn-sfx-reload',function(){op.sfx.ensure();op.sfx.loadSamples(true).then(function(){op.sfx.applyEngine();updateSfxStatus()});updateSfxStatus()});
+updateSfxStatus();setInterval(updateSfxStatus,1500);
+// Map editor controls
+const ME=op.getMapEditor();
+const r=$('#cfg-brushR'),rl=$('#lbl-brushR');if(r)r.addEventListener('input',function(){if(!checkLink())return;ME.radius=parseFloat(r.value);rl.textContent=ME.radius.toFixed(1)});
+const sp=$('#cfg-brushSpacing'),spl=$('#lbl-brushSpacing');if(sp)sp.addEventListener('input',function(){if(!checkLink())return;ME.spacing=parseFloat(sp.value);spl.textContent=ME.spacing.toFixed(2)});
+const bv=$('#cfg-brushVariety'),bvl=$('#lbl-brushVariety');if(bv)bv.addEventListener('input',function(){if(!checkLink())return;CFG.brushVariety=parseInt(bv.value);bvl.textContent=CFG.brushVariety});
+call('map-editor-toggle',function(){const btn=op.document.getElementById('map-editor-toggle');if(btn)btn.click();const me=op.getMapEditor();$('#map-editor-toggle').textContent='EDITOR :: '+(me.enabled?'ON':'OFF')});
+call('map-clear-trees',function(){const b=op.document.getElementById('map-clear-trees');if(b)b.click()});
+call('map-clear-rocks',function(){const b=op.document.getElementById('map-clear-rocks');if(b)b.click()});
+call('map-clear-all',function(){const b=op.document.getElementById('map-clear-all');if(b)b.click()});
+call('map-export-json',function(){const d=op.exportMap();const ta=$('#map-json-area');if(ta)ta.value=JSON.stringify(d,null,2)});
+call('map-export-download',function(){const d=op.exportMap(),bl=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download='kodkod-map-'+Date.now()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u)},1000)});
+call('map-import-json',function(){const ta=$('#map-json-area');if(!ta||!ta.value.trim())return;try{op.importMap(JSON.parse(ta.value))}catch(e){alert('Import failed: '+e.message)}});
+// Heartbeat: detect when opener closes, switch status
+setInterval(checkLink,2000);
+$('#foot-stamp').textContent='POPOUT '+new Date().toTimeString().slice(0,8);
+// Notify opener we're up
+try{op.onDevPopoutReady&&op.onDevPopoutReady()}catch(e){}
+})();<\/script></body></html>`}
+function openDevPopout(){
+if(devPopout&&!devPopout.closed){devPopout.focus();return}
+// 1180×780 is a comfortable single-half of a 24" monitor; opens at top-right of current screen.
+const w=window.open('','kodkod-dev','popup,width=1180,height=780,left='+(screen.width-1180)+',top=40');
+if(!w){alert('Popup blocked. Allow popups for this site, then click POP OUT again.');return}
+w.document.open();w.document.write(buildDevPopoutHtml());w.document.close();
+devPopout=w;
+// Hide main panel while popout is up; clicking hamburger refocuses popout.
+document.body.classList.add('dev-popout-open');document.body.classList.remove('panel-open');
+// Close-button inside popout: closes the window.
+const tryWire=()=>{const b=w.document.getElementById('btn-close-popout');if(b){b.addEventListener('click',()=>w.close())}else setTimeout(tryWire,80)};tryWire();
+// Poll for close → restore main panel
+if(devPopoutPoll)clearInterval(devPopoutPoll);
+devPopoutPoll=setInterval(()=>{if(!devPopout||devPopout.closed){clearInterval(devPopoutPoll);devPopoutPoll=null;devPopout=null;document.body.classList.remove('dev-popout-open')}},500);
+}
+window.onDevPopoutReady=()=>{};
+$('#btn-popout').addEventListener('click',()=>{sfx.ui(700,.06);openDevPopout()});
 // boot screen
 (function(){const fill=$('#boot-fill'),pct=$('#boot-pct'),start=$('#boot-start'),stage=$('#boot-stage');if(!fill||!pct||!start||!stage)return;
 const t0=performance.now(),tot=2200;
