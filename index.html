@@ -12,7 +12,11 @@ canvas#game{position:fixed;inset:0;width:100%;height:100%;display:block}
 .hud-corner.tr{top:14px;right:14px;border-left:0;border-bottom:0}
 .hud-corner.bl{bottom:14px;left:14px;border-right:0;border-top:0}
 .hud-corner.br{bottom:14px;right:14px;border-left:0;border-top:0}
-#topbar{position:absolute;top:0;left:0;right:0;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--ink-dim)}
+#topbar{position:absolute;top:0;left:0;right:0;padding:18px 28px;font-size:11px;color:var(--ink-dim);pointer-events:none;min-height:64px}
+#topbar > *{pointer-events:auto}
+#topbar-left{position:absolute;top:18px;left:28px;z-index:11}
+#topbar-center{position:absolute;top:18px;left:50%;transform:translateX(-50%);z-index:10;display:flex;justify-content:center}
+#topbar-right{position:absolute;top:18px;right:28px;display:flex;gap:14px;align-items:flex-start;z-index:11}
 #title-block{display:flex;align-items:center;gap:14px}
 #logo-mark{width:26px;height:26px;border:1px solid var(--ink);position:relative}
 #logo-mark::before{content:'';position:absolute;top:50%;left:50%;width:8px;height:8px;transform:translate(-50%,-50%) rotate(45deg);border:1px solid var(--accent)}
@@ -27,7 +31,7 @@ canvas#game{position:fixed;inset:0;width:100%;height:100%;display:block}
 #round-block .rb-sep{color:var(--line-dim);margin:0 6px}
 #base-status{font-size:9px;color:var(--ok);letter-spacing:.2em}
 #base-status.down{color:var(--danger)}
-#hamburger{position:fixed;top:18px;right:28px;z-index:60;pointer-events:auto;width:38px;height:38px;border:1px solid var(--line);background:rgba(0,0,0,.55);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:border-color .2s,background .2s}
+#hamburger{pointer-events:auto;width:38px;height:38px;border:1px solid var(--line);background:rgba(0,0,0,.55);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:border-color .2s,background .2s;flex:0 0 auto}
 #hamburger:hover{border-color:var(--accent)}
 #hamburger span{width:18px;height:1px;background:var(--ink);transition:transform .3s,opacity .3s}
 body.panel-open #hamburger span:nth-child(1){transform:translateY(6px) rotate(45deg);background:var(--accent)}
@@ -146,19 +150,21 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;background:var(--acce
 #killfeed{position:fixed;top:90px;right:28px;z-index:15;display:flex;flex-direction:column;gap:4px;pointer-events:none}
 .kill-line{border-left:2px solid var(--accent);padding:6px 12px;background:rgba(0,0,0,.5);font-size:10px;color:var(--ink);letter-spacing:.15em;animation:kfslide .3s}
 @keyframes kfslide{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
-@media (max-width:700px){#panel{width:100%}#menu h1{font-size:52px}#controls-hint{font-size:8px;padding:6px 10px;gap:8px;max-width:90%}#radar{width:130px;height:130px;bottom:100px;left:14px}#radar-canvas{width:130px;height:130px}#base-timer{width:130px;bottom:240px;left:14px}#base-timer-val{font-size:22px}}
+@media (max-width:700px){#panel{width:100%}#menu h1{font-size:52px}#controls-hint{font-size:8px;padding:6px 10px;gap:8px;max-width:90%}#radar{width:130px;height:130px;bottom:100px;left:14px}#radar-canvas{width:130px;height:130px}#base-timer{width:130px;bottom:240px;left:14px}#base-timer-val{font-size:22px}#title-sub{display:none}#topbar{min-height:auto}#topbar-left{top:14px;left:14px}#topbar-right{top:14px;right:14px;gap:8px}#mode-tag{display:none}#topbar-center{top:auto;bottom:auto;left:14px;right:64px;transform:none;margin-top:54px;justify-content:flex-start}#round-block{min-width:0;padding:6px 10px;font-size:9px;width:100%}#round-block .rb-row{flex-wrap:wrap}}
 </style></head><body>
 <canvas id=game></canvas>
-<button id=hamburger aria-label=Settings><span></span><span></span><span></span></button>
 <div id=hud>
 <div class="hud-corner tl"></div><div class="hud-corner tr"></div><div class="hud-corner bl"></div><div class="hud-corner br"></div>
 <div id=topbar>
-<div id=title-block><div id=logo-mark></div><div><div id=title-text>KODKOD</div><div id=title-sub>ISO-OPS // SURVIVE</div></div></div>
-<div id=round-block>
+<div id=topbar-left><div id=title-block><div id=logo-mark></div><div><div id=title-text>KODKOD</div><div id=title-sub>ISO-OPS // SURVIVE</div></div></div></div>
+<div id=topbar-center><div id=round-block>
 <div class=rb-row><span class=rb-lbl>ROUND</span><span class=rb-val id=round-val>1</span><span class=rb-sep>::</span><span class=rb-lbl>HOSTILES</span><span class=rb-val id=round-hostiles>0/1</span></div>
 <div class=rb-row><span class=rb-lbl>RUN TIME</span><span class="rb-val mono" id=run-time>00:00</span><span class=rb-sep>::</span><span class=rb-lbl id=base-status>BASE READY</span></div>
+</div></div>
+<div id=topbar-right>
+<div id=mode-tag>MODE :: SURVIVE</div>
+<button id=hamburger aria-label=Settings><span></span><span></span><span></span></button>
 </div>
-<div style="display:flex;gap:10px;align-items:center"><div id=mode-tag>MODE :: SURVIVE</div></div>
 </div>
 <div id=crosshair><div id=crosshair-ring></div><div id=crosshair-dot></div></div>
 <div id=killfeed></div>
@@ -375,6 +381,7 @@ const pR=TERRAIN.size*.46,dC=Math.sqrt(this.group.position.x**2+this.group.posit
 const tF=1.8*CFG.bodyScale;
 if(TERRAIN.trees?.length){for(const tr of TERRAIN.trees){if(tr.fallen)continue;const dx=this.group.position.x-tr.x,dz=this.group.position.z-tr.z,r=tF+tr.r;if(dx*dx+dz*dz<r*r){tr.fallen=true;tr.fallTime=0;const l=Math.sqrt(dx*dx+dz*dz)||1;tr.fallDirX=-dx/l;tr.fallDirZ=-dz/l;this.vel*=.92}}}
 if(TERRAIN.rocks?.length){if(this._rockCD===undefined)this._rockCD=0;this._rockCD=Math.max(0,this._rockCD-dt);for(const rk of TERRAIN.rocks){const dx=this.group.position.x-rk.x,dz=this.group.position.z-rk.z,mD=tF+rk.r*.85,dSq=dx*dx+dz*dz;if(dSq<mD*mD&&dSq>.0001){const d=Math.sqrt(dSq),ov=mD-d,nx=dx/d,nz=dz/d;this.group.position.x+=nx*ov;this.group.position.z+=nz*ov;const vx=Math.sin(this.yaw)*this.vel,vz=Math.cos(this.yaw)*this.vel,cl=-(vx*nx+vz*nz);if(this._rockCD<=0&&cl>1.5){const dmg=Math.min(30,cl*1.6);this.damage(dmg,'ROCK');this._rockCD=.5;spawnMuzzleFlash(v3(rk.x,rk.y+rk.r+.4,rk.z))}if(cl>0)this.vel*=.15}}}
+if(TERRAIN.props?.length){if(this._propCD===undefined)this._propCD=0;this._propCD=Math.max(0,this._propCD-dt);for(const pr of TERRAIN.props){if(!pr.solid||pr.passable)continue;const dx=this.group.position.x-pr.x,dz=this.group.position.z-pr.z,mD=tF+pr.r*.85,dSq=dx*dx+dz*dz;if(dSq<mD*mD&&dSq>.0001){const d=Math.sqrt(dSq),ov=mD-d,nx=dx/d,nz=dz/d;this.group.position.x+=nx*ov;this.group.position.z+=nz*ov;const vx=Math.sin(this.yaw)*this.vel,vz=Math.cos(this.yaw)*this.vel,cl=-(vx*nx+vz*nz);if(this._propCD<=0&&cl>1.5){const dmg=Math.min(28,cl*1.4);this.damage(dmg,pr.kind.toUpperCase());if(pr.hp!=null)pr.hp-=Math.min(5,cl*.8);this._propCD=.4;spawnMuzzleFlash(v3(pr.x,pr.y+pr.h*.6,pr.z))}if(cl>0)this.vel*=.18}}}
 const h=terrainHeightAt(this.group.position.x,this.group.position.z);this.group.position.y=h;this.group.rotation.y=this.yaw;
 const s=1.5,hF=terrainHeightAt(this.group.position.x+Math.sin(this.yaw)*s,this.group.position.z+Math.cos(this.yaw)*s),hB=terrainHeightAt(this.group.position.x-Math.sin(this.yaw)*s,this.group.position.z-Math.cos(this.yaw)*s),hL=terrainHeightAt(this.group.position.x-Math.cos(this.yaw)*s,this.group.position.z+Math.sin(this.yaw)*s),hR=terrainHeightAt(this.group.position.x+Math.cos(this.yaw)*s,this.group.position.z-Math.sin(this.yaw)*s);
 this.group.rotation.x=Math.atan2(hF-hB,s*2)*.6;this.group.rotation.z=Math.atan2(hL-hR,s*2)*.6}}
@@ -523,6 +530,7 @@ for(const t of ENTITIES.tanks){if(t.dead||t===p.owner)continue;const dx=px-t.gro
 for(const o of TERRAIN.obstacles){const dx=px-o.x,dz=pz-o.z,dy=py-(o.y+o.h/2);if(Math.abs(dx)<o.w/2+.2&&Math.abs(dz)<o.d/2+.2&&Math.abs(dy)<o.h/2+.2){hit=true;break}}
 if(!hit){for(const t of TERRAIN.trees){if(t.fallen)continue;const dx=px-t.x,dz=pz-t.z,dy=py-t.y;if(dx*dx+dz*dz<(t.r+.25)*(t.r+.25)&&dy>-.2&&dy<t.h+.2){hit=true;break}}}
 if(!hit){for(const r of TERRAIN.rocks){const dx=px-r.x,dz=pz-r.z,dy=py-(r.y+r.r),rr=r.r+.2;if(dx*dx+dz*dz+dy*dy<rr*rr){hit=true;break}}}
+if(!hit){for(const pr of TERRAIN.props){if(!pr.solid||pr.passable)continue;const dx=px-pr.x,dz=pz-pr.z,dh=py-pr.y;if(dx*dx+dz*dz<(pr.r+.15)*(pr.r+.15)&&dh>-.3&&dh<pr.h+.3){hit=true;break}}}
 if(!hit&&ENTITIES.basements){for(const b of ENTITIES.basements){if(b.dead)continue;const dx=px-b.x,dz=pz-b.z,dy=py-b.y;if(Math.abs(dx)<b.r+.1&&Math.abs(dz)<b.r+.1&&dy<.5&&dy>-.3){hit=true;break}if(dy>0&&dy<5&&Math.abs(dx)<b.r&&Math.abs(dz)<b.r){const cx=Math.abs(dx)-(b.r-.6),cz=Math.abs(dz)-(b.r-.6);if(cx*cx+cz*cz<.36){hit=true;break}}}}
 if(hit||p.life<=0){const ex=p.mesh.position.clone();ex.y=Math.max(ex.y,gY);
 if(p.dud){const puff=mesh(new T.OctahedronGeometry(.4,0),bmat(0x8a7a64,{transparent:true,opacity:.7}));puff.position.copy(ex);scene.add(puff);ENTITIES.effects.push({mesh:puff,type:'flash',life:.25,max:.25});sfx.ui(110,.05);scene.remove(p.mesh);scene.remove(p.trail);p.mesh.geometry.dispose();ENTITIES.projectiles.splice(i,1);continue}
@@ -530,6 +538,7 @@ spawnExplosion(ex,1);
 for(const t of ENTITIES.tanks){if(t.dead)continue;const dx=ex.x-t.group.position.x,dz=ex.z-t.group.position.z,d=Math.sqrt(dx*dx+dz*dz);if(d<CFG.blast){t.damage(CFG.dmg*(1-d/CFG.blast),p.owner?p.owner.name:'UNKNOWN')}}
 for(const tr of TERRAIN.trees){if(tr.fallen)continue;const dx=ex.x-tr.x,dz=ex.z-tr.z;if(dx*dx+dz*dz<CFG.blast*CFG.blast){tr.hp=(tr.hp||1)-1;if(tr.hp<=0){tr.fallen=true;tr.fallTime=0;const l=Math.sqrt(dx*dx+dz*dz)||1;tr.fallDirX=-dx/l;tr.fallDirZ=-dz/l}else{const puff=mesh(new T.OctahedronGeometry(.4,0),bmat(0x7c8e5a,{transparent:true,opacity:.7}));puff.position.set(tr.x,tr.y+tr.h*.6,tr.z);scene.add(puff);ENTITIES.effects.push({mesh:puff,type:'flash',life:.45,max:.45})}}}
 for(let ri=TERRAIN.rocks.length-1;ri>=0;ri--){const rk=TERRAIN.rocks[ri];const dx=ex.x-rk.x,dz=ex.z-rk.z;if(dx*dx+dz*dz<(CFG.blast*.9)*(CFG.blast*.9)){rk.hp=(rk.hp||1)-1;if(rk.hp<=0){spawnExplosion(v3(rk.x,rk.y+rk.r,rk.z),.55);scene.remove(rk.mesh);rk.mesh.geometry?.dispose?.();TERRAIN.rocks.splice(ri,1)}}}
+for(let pi=TERRAIN.props.length-1;pi>=0;pi--){const pr=TERRAIN.props[pi];if(pr.hp==null||pr.hp<=0)continue;const dx=ex.x-pr.x,dz=ex.z-pr.z,bd=Math.sqrt(dx*dx+dz*dz),reach=CFG.blast+pr.r*.4;if(bd<reach){const fo=1-bd/reach,dmg=CFG.dmg*.55*Math.max(.2,fo);pr.hp-=dmg;if(pr.hp<=0){spawnExplosion(v3(pr.x,pr.y+pr.h*.5,pr.z),.7);scene.remove(pr.mesh);pr.mesh.traverse(o=>o.geometry?.dispose?.());TERRAIN.props.splice(pi,1);if(p.owner)addKillFeed(`${(p.owner.name||'UNKNOWN').toUpperCase()} DESTROYED ${pr.kind.toUpperCase()}`)}else{const puff=mesh(new T.OctahedronGeometry(.35,0),bmat(0xa89878,{transparent:true,opacity:.6}));puff.position.set(pr.x,pr.y+pr.h*.5,pr.z);scene.add(puff);ENTITIES.effects.push({mesh:puff,type:'flash',life:.4,max:.4})}}}
 if(ENTITIES.basements?.length){for(const b of ENTITIES.basements){if(b.dead)continue;const dx=ex.x-b.x,dz=ex.z-b.z,d=Math.sqrt(dx*dx+dz*dz);if(d<CFG.blast+b.r*.5){const fo=1-Math.max(0,(d-b.r*.5))/CFG.blast;b.damage(CFG.dmg*.6*Math.max(.2,fo),p.owner?p.owner.name:'UNKNOWN')}}}
 scene.remove(p.mesh);scene.remove(p.trail);p.mesh.geometry.dispose();ENTITIES.projectiles.splice(i,1)}}}
 function updateEffects(dt){for(let i=ENTITIES.effects.length-1;i>=0;i--){const e=ENTITIES.effects[i];e.life-=dt;const t=e.life/e.max;
@@ -552,8 +561,9 @@ if(TERRAIN.gridMesh)scene.remove(TERRAIN.gridMesh);
 for(const o of TERRAIN.obstacles)scene.remove(o.mesh);
 for(const t of TERRAIN.trees)scene.remove(t.mesh);
 for(const r of TERRAIN.rocks)scene.remove(r.mesh);
+for(const p of(TERRAIN.props||[]))scene.remove(p.mesh);
 for(const r of TERRAIN.rivers){scene.remove(r.mesh);if(r.edge)scene.remove(r.edge)}
-TERRAIN.obstacles=[];TERRAIN.trees=[];TERRAIN.rocks=[];TERRAIN.rivers=[];TERRAIN.riverMask=null;
+TERRAIN.obstacles=[];TERRAIN.trees=[];TERRAIN.rocks=[];TERRAIN.props=[];TERRAIN.rivers=[];TERRAIN.riverMask=null;
 TERRAIN.size=CFG.fieldSize;TERRAIN.seg=Math.min(120,Math.floor(CFG.fieldSize*.8));TERRAIN.rng=new Rng(CFG.seed);
 const pal=PALETTES[CFG.palette];scene.background=new C3(pal.sky);scene.fog=new T.FogExp2(pal.sky,CFG.fog);
 const size=TERRAIN.size,rng=TERRAIN.rng;
@@ -744,23 +754,150 @@ function spawnRockAt(x,z,rad){if(!TERRAIN.palette||!TERRAIN.palette.rockCol)retu
 const rm=mesh(geo,mat(pal.rockCol,{roughness:.95}));const sk=rad*.35;rm.position.set(x,gy+rad-sk,z);rm.rotation.set(Math.random()*Math.PI*2,Math.random()*Math.PI*2,Math.random()*Math.PI*2);
 rm.add(new T.LineSegments(new T.EdgesGeometry(geo),lmat(pal.rockLineCol,{transparent:true,opacity:CFG.wire})));scene.add(rm);
 const rock={x,z,y:gy-sk,r:rad,mesh:rm,hp:CFG.rockHp*Math.max(1,Math.round(rad/1.5))};TERRAIN.rocks.push(rock);return rock}
+// ===== PROPS LIBRARY (new wireframe brush items) =====
+// Each builder returns {group, r, h} where r is footprint radius (for collision/erase in stage 2) and h is total height.
+// Materials use TERRAIN.palette which is set up by generateBattlefield, so spawnProp() before world-gen is a no-op.
+TERRAIN.props=[];
+function _propMaterials(){const p=TERRAIN.palette,line=p?.rockLineCol||new C3(0xa39c83);return{wall:mat(new C3(0x8a8268),{roughness:.9}),wood:mat(new C3(0x5a3f28),{roughness:.95}),dark:mat(new C3(0x2e2a24),{roughness:.95}),metal:mat(new C3(0x4a5258),{roughness:.6,metalness:.3}),roof:mat(new C3(0x7a3e2e),{roughness:.85}),road:mat(new C3(0x3a3530),{roughness:.95}),cow:mat(new C3(0xeeeae0),{roughness:.9}),cowDark:mat(new C3(0x2e2620),{roughness:.9}),water:mat(new C3(0x4a7080),{emissive:new C3(0x1a2830),roughness:.4,metalness:.2}),paint:mat(new C3(0x9c6042),{roughness:.7}),line}}
+function _edge(m,k){const M=_propMaterials();m.add(new T.LineSegments(new T.EdgesGeometry(m.geometry),lmat(M.line,{transparent:true,opacity:CFG.wire*(k==null?1:k)})));return m}
+// ---- Builders ----
+function _bHouse(s=1){const M=_propMaterials(),g=grp();const w=2.8*s,d=2.4*s,h=2*s;const body=mesh(new T.BoxGeometry(w,h,d),M.wall);body.position.y=h/2;g.add(_edge(body));const rh=h*.6;const roofGeo=new T.CylinderGeometry(.01,d*.78,rh,4,1);const roof=mesh(roofGeo,M.roof);roof.rotation.y=Math.PI/4;roof.position.y=h+rh/2;g.add(_edge(roof));const door=mesh(new T.BoxGeometry(.55*s,1.1*s,.05),M.dark);door.position.set(0,.55*s,d/2+.026);g.add(door);for(const sx of[-1,1]){const win=mesh(new T.BoxGeometry(.45*s,.45*s,.05),M.dark);win.position.set(sx*w*.27,h*.65,d/2+.026);g.add(win)}return{group:g,r:Math.max(w,d)*.55,h:h+rh}}
+function _bWatchtower(s=1){const M=_propMaterials(),g=grp();const legH=4*s,legR=.12*s;for(const[sx,sz]of[[-.8,-.8],[.8,-.8],[-.8,.8],[.8,.8]]){const leg=mesh(new T.BoxGeometry(legR*2,legH,legR*2),M.wood);leg.position.set(sx*s,legH/2,sz*s);g.add(_edge(leg,.7))}for(let i=1;i<4;i++){const y=legH*i/4;for(const[a,b]of[[[-.8,-.8],[.8,-.8]],[[.8,-.8],[.8,.8]],[[.8,.8],[-.8,.8]],[[-.8,.8],[-.8,-.8]]]){const dx=(b[0]-a[0])*s,dz=(b[1]-a[1])*s,len=Math.sqrt(dx*dx+dz*dz);const br=mesh(new T.BoxGeometry(len,.06*s,.06*s),M.wood);br.position.set((a[0]+b[0])/2*s,y,(a[1]+b[1])/2*s);br.rotation.y=Math.atan2(dz,dx);g.add(_edge(br,.7))}}const platS=2.2*s,platH=.18*s;const plat=mesh(new T.BoxGeometry(platS,platH,platS),M.wood);plat.position.y=legH+platH/2;g.add(_edge(plat));const railH=.9*s;for(const[sx,sz,rx,rz]of[[0,platS/2,platS,.05],[0,-platS/2,platS,.05],[platS/2,0,.05,platS],[-platS/2,0,.05,platS]]){const rail=mesh(new T.BoxGeometry(rx,railH,rz),M.wood);rail.position.set(sx,legH+platH+railH/2,sz);g.add(_edge(rail,.7))}const roofGeo=new T.ConeGeometry(platS*.8,.9*s,4,1);const roof=mesh(roofGeo,M.roof);roof.rotation.y=Math.PI/4;roof.position.y=legH+platH+railH+.45*s;g.add(_edge(roof));return{group:g,r:s*1.4,h:legH+platH+railH+.9*s}}
+function _bRoadSegment(s=1,lenScale){const M=_propMaterials(),g=grp();const w=2.4,len=3*(lenScale!=null?lenScale:s);const plate=mesh(new T.BoxGeometry(len,.04,w),M.road);plate.position.y=.02;g.add(_edge(plate,.5));const stripe=mesh(new T.BoxGeometry(len*.55,.06,.12),M.paint);stripe.position.y=.05;g.add(stripe);return{group:g,r:Math.max(len,w)*.5,h:.06}}
+function _bWoods(s=1){const M=_propMaterials(),g=grp();const n=5+Math.floor(Math.random()*3);for(let i=0;i<n;i++){const ang=(i/n)*Math.PI*2+Math.random()*.4,d=Math.random()*1.6*s,trunkH=(1.2+Math.random()*.8)*s,trunkR=(.13+Math.random()*.1)*s,foH=(2+Math.random()*1.4)*s,foR=(.85+Math.random()*.5)*s;const trunk=mesh(new T.CylinderGeometry(trunkR*.85,trunkR,trunkH,5),M.wood);trunk.position.set(Math.cos(ang)*d,trunkH/2,Math.sin(ang)*d);g.add(_edge(trunk));const cone=mesh(new T.ConeGeometry(foR,foH,5,1),mat(new C3(0x4a6a3a).lerp(new C3(0x6a8a5a),Math.random()),{roughness:.85}));cone.position.set(Math.cos(ang)*d,trunkH+foH/2,Math.sin(ang)*d);cone.rotation.y=Math.random()*Math.PI*2;g.add(_edge(cone))}return{group:g,r:2.5*s,h:4*s}}
+function _bBarrier(s=1){const M=_propMaterials(),g=grp();const len=3*s;const top=mesh(new T.BoxGeometry(len,.18,.18),M.paint);top.position.y=1*s;g.add(_edge(top,.8));const base=mesh(new T.BoxGeometry(len,.18,.18),M.dark);base.position.y=.1*s;g.add(_edge(base,.8));for(let i=0;i<3;i++){const post=mesh(new T.BoxGeometry(.12,1*s,.12),M.dark);post.position.set(-len/2+i*len/2,.5*s,0);g.add(_edge(post,.7))}for(let i=0;i<4;i++){const dash=mesh(new T.BoxGeometry(len*.18,.19,.19),M.dark);dash.position.set(-len*.4+i*len*.27,1*s,0);g.add(dash)}return{group:g,r:len*.55,h:1.1*s}}
+function _bCow(s=1){const M=_propMaterials(),g=grp();const body=mesh(new T.BoxGeometry(1.4*s,.9*s,.7*s),M.cow);body.position.y=.95*s;g.add(_edge(body,.7));for(const[sx,sz]of[[-.5,-.25],[.5,-.25],[-.5,.25],[.5,.25]]){const leg=mesh(new T.BoxGeometry(.13*s,.55*s,.13*s),M.cowDark);leg.position.set(sx*s,.275*s,sz*s);g.add(_edge(leg,.6))}const head=mesh(new T.BoxGeometry(.5*s,.5*s,.5*s),M.cow);head.position.set(.85*s,1.15*s,0);g.add(_edge(head,.7));const snout=mesh(new T.BoxGeometry(.22*s,.3*s,.3*s),M.cowDark);snout.position.set(1.1*s,1*s,0);g.add(_edge(snout,.7));for(const sz of[-.18,.18]){const ear=mesh(new T.BoxGeometry(.12*s,.18*s,.06*s),M.cowDark);ear.position.set(.85*s,1.35*s,sz*s);g.add(ear)}const patch=mesh(new T.BoxGeometry(.4*s,.92*s,.72*s),M.cowDark);patch.position.set(-.15*s,.95*s,0);g.add(patch);g.rotation.y=Math.random()*Math.PI*2;return{group:g,r:.9*s,h:1.5*s}}
+function _bBarn(s=1){const M=_propMaterials(),g=grp();const w=5*s,d=3.6*s,h=2.6*s;const body=mesh(new T.BoxGeometry(w,h,d),M.paint);body.position.y=h/2;g.add(_edge(body));const rh=h*.55;const roof=mesh(new T.CylinderGeometry(.01,d*.6,rh,4,1),M.dark);roof.rotation.y=Math.PI/4;roof.position.y=h+rh/2;roof.scale.set(w/d,1,1);g.add(_edge(roof));const door=mesh(new T.BoxGeometry(1.4*s,1.8*s,.05),M.dark);door.position.set(0,.9*s,d/2+.03);g.add(_edge(door,.6));const cross1=mesh(new T.BoxGeometry(1.4*s,.08,.06),M.cow);cross1.position.set(0,1*s,d/2+.06);g.add(cross1);const cross2=mesh(new T.BoxGeometry(.08,1.8*s,.06),M.cow);cross2.position.set(0,.9*s,d/2+.06);g.add(cross2);for(const sx of[-.34,.34]){const win=mesh(new T.BoxGeometry(.5*s,.5*s,.05),M.dark);win.position.set(sx*w,h*.65,d/2+.03);g.add(win)}return{group:g,r:Math.max(w,d)*.55,h:h+rh}}
+function _bWell(s=1){const M=_propMaterials(),g=grp();const rOut=.7*s,rIn=.55*s,wallH=.7*s;const wall=mesh(new T.CylinderGeometry(rOut,rOut,wallH,12),M.wall);wall.position.y=wallH/2;g.add(_edge(wall,.8));const water=mesh(new T.CylinderGeometry(rIn,rIn,.05,12),M.water);water.position.y=wallH-.04;g.add(water);for(const sx of[-1,1]){const post=mesh(new T.BoxGeometry(.1*s,1.4*s,.1*s),M.wood);post.position.set(sx*rOut*.85,wallH+.7*s,0);g.add(_edge(post,.7))}const beam=mesh(new T.BoxGeometry(rOut*2.2,.12*s,.12*s),M.wood);beam.position.y=wallH+1.4*s;g.add(_edge(beam,.7));const roofGeo=new T.ConeGeometry(rOut*1.1,.5*s,4,1);const roof=mesh(roofGeo,M.dark);roof.rotation.y=Math.PI/4;roof.position.y=wallH+1.65*s;g.add(_edge(roof,.7));const bucket=mesh(new T.BoxGeometry(.22*s,.25*s,.22*s),M.wood);bucket.position.y=wallH+.4*s;g.add(_edge(bucket,.6));return{group:g,r:rOut*1.4,h:wallH+1.9*s}}
+function _bTruck(s=1){const M=_propMaterials(),g=grp();const cabW=1.2*s,cabH=1*s,cabL=1.1*s;const chassis=mesh(new T.BoxGeometry(cabW*1.05,.18,3.4*s),M.dark);chassis.position.y=.45*s;g.add(_edge(chassis,.6));const cab=mesh(new T.BoxGeometry(cabW,cabH,cabL),M.paint);cab.position.set(0,.65*s+cabH/2,-1*s);g.add(_edge(cab));const cabWin=mesh(new T.BoxGeometry(cabW*.95,cabH*.45,.04),M.dark);cabWin.position.set(0,.65*s+cabH*.7,-1*s-cabL/2-.02);g.add(cabWin);const bedW=cabW*1.05,bedL=2.1*s,bedH=.7*s;const bed=mesh(new T.BoxGeometry(bedW,bedH,bedL),M.paint);bed.position.set(0,.55*s+bedH/2,.5*s);g.add(_edge(bed,.8));const wR=.32*s,wL=.18*s;for(const[sx,sz]of[[-1,-1.2],[1,-1.2],[-1,.1],[1,.1],[-1,1.2],[1,1.2]]){const wheelGeo=new T.CylinderGeometry(wR,wR,wL,10);wheelGeo.rotateZ(Math.PI/2);const wheel=mesh(wheelGeo,M.dark);wheel.position.set(sx*(cabW/2+wL/3),wR,sz*s);g.add(_edge(wheel,.5))}return{group:g,r:1.5*s,h:1.7*s}}
+function _bCar(s=1){const M=_propMaterials(),g=grp();const bw=1.1*s,bl=2.2*s,bh=.45*s;const body=mesh(new T.BoxGeometry(bw,bh,bl),M.paint);body.position.y=.4*s+bh/2;g.add(_edge(body));const ch=.5*s;const cabin=mesh(new T.BoxGeometry(bw*.9,ch,bl*.5),M.dark);cabin.position.y=.4*s+bh+ch/2;g.add(_edge(cabin,.7));const wR=.24*s,wL=.16*s;for(const[sx,sz]of[[-1,-.7],[1,-.7],[-1,.7],[1,.7]]){const wheelGeo=new T.CylinderGeometry(wR,wR,wL,10);wheelGeo.rotateZ(Math.PI/2);const wheel=mesh(wheelGeo,M.dark);wheel.position.set(sx*(bw/2+wL/3),wR,sz*s);g.add(_edge(wheel,.5))}return{group:g,r:1.1*s,h:1.4*s}}
+// kind: solid=blocks tank/bullets; hp=damage to destroy; collision radius derived from build result; passable=true means tanks drive over (roads)
+const PROPS_CATALOG={
+'house':{label:'HOUSE',build:_bHouse,baseScale:1,hp:60,solid:true},
+'watchtower':{label:'WATCHTOWER',build:_bWatchtower,baseScale:1,hp:40,solid:true},
+'road':{label:'ROAD',build:_bRoadSegment,baseScale:1,hp:0,solid:false,passable:true},
+'woods':{label:'WOODS',build:_bWoods,baseScale:1,hp:10,solid:true},
+'barrier':{label:'BARRIER',build:_bBarrier,baseScale:1,hp:8,solid:true},
+'cow':{label:'COW',build:_bCow,baseScale:1,hp:3,solid:true},
+'barn':{label:'BARN',build:_bBarn,baseScale:1,hp:80,solid:true},
+'well':{label:'WELL',build:_bWell,baseScale:1,hp:30,solid:true},
+'truck':{label:'TRUCK',build:_bTruck,baseScale:1,hp:25,solid:true},
+'car':{label:'CAR',build:_bCar,baseScale:1,hp:18,solid:true},
+};
+function spawnProp(kind,x,z,scale,opts){const spec=PROPS_CATALOG[kind];if(!spec||!TERRAIN.palette)return null;const built=spec.build(scale||spec.baseScale,opts&&opts.lenScale);const gy=terrainHeightAt(x,z);built.group.position.set(x,gy,z);if(opts){if(opts.rotEuler){built.group.rotation.set(opts.rotEuler[0]||0,opts.rotEuler[1]||0,opts.rotEuler[2]||0,opts.rotEuler[3]||'XYZ')}else if(opts.rotY!=null){built.group.rotation.y=opts.rotY}if(opts.yOffset)built.group.position.y+=opts.yOffset}else if(kind==='road'){built.group.rotation.y=Math.random()*Math.PI*2}scene.add(built.group);const prop={kind,x,z,y:gy,r:built.r,h:built.h,mesh:built.group,hp:spec.hp,maxHp:spec.hp,solid:spec.solid!==false,passable:!!spec.passable};TERRAIN.props.push(prop);return prop}
 const MapEditor={enabled:false,brush:'tree',radius:3,spacing:2,lastPaint:null,mouseDown:false,cursorMesh:null};
 function ensureEditorCursor(){if(MapEditor.cursorMesh)return MapEditor.cursorMesh;const rg=new T.RingGeometry(.95,1,36);rg.rotateX(-Math.PI/2);const rm=bmat(0xffa050,{transparent:true,opacity:.8,side:DS,depthTest:false});const ring=mesh(rg,rm);ring.renderOrder=1000;ring.visible=false;scene.add(ring);MapEditor.cursorMesh=ring;return ring}
 function setEditorEnabled(on){MapEditor.enabled=!!on;const btn=document.getElementById('map-editor-toggle');if(btn)btn.textContent=MapEditor.enabled?'EDITOR :: ON':'EDITOR :: OFF';document.body.classList.toggle('editor-on',MapEditor.enabled);ensureEditorCursor().visible=MapEditor.enabled}
 function paintAtMouse(){const gp=getMouseGroundPoint();if(!gp)return;const r=MapEditor.radius,vr=CFG.brushVariety??5;
-if(MapEditor.brush==='tree')spawnTreeAt(gp.x,gp.z);
-else if(MapEditor.brush==='rock-s'){const base=1.2,spread=.2*vr;spawnRockAt(gp.x,gp.z,base+Math.random()*spread)}
-else if(MapEditor.brush==='rock-l'){const base=4,spread=.4*vr;spawnRockAt(gp.x,gp.z,base+Math.random()*spread)}
-else if(MapEditor.brush==='erase'){for(let i=TERRAIN.trees.length-1;i>=0;i--){const t=TERRAIN.trees[i],dx=t.x-gp.x,dz=t.z-gp.z;if(dx*dx+dz*dz<r*r){scene.remove(t.mesh);t.mesh.traverse(o=>o.geometry?.dispose?.());TERRAIN.trees.splice(i,1)}}for(let i=TERRAIN.rocks.length-1;i>=0;i--){const rk=TERRAIN.rocks[i],dx=rk.x-gp.x,dz=rk.z-gp.z;if(dx*dx+dz*dz<(r+rk.r)*(r+rk.r)){scene.remove(rk.mesh);rk.mesh.geometry?.dispose?.();TERRAIN.rocks.splice(i,1)}}}
+const b=MapEditor.brush;
+if(b==='tree')spawnTreeAt(gp.x,gp.z);
+else if(b==='rock-s'){const base=1.2,spread=.2*vr;spawnRockAt(gp.x,gp.z,base+Math.random()*spread)}
+else if(b==='rock-l'){const base=4,spread=.4*vr;spawnRockAt(gp.x,gp.z,base+Math.random()*spread)}
+else if(b==='erase'){
+for(let i=TERRAIN.trees.length-1;i>=0;i--){const t=TERRAIN.trees[i],dx=t.x-gp.x,dz=t.z-gp.z;if(dx*dx+dz*dz<r*r){scene.remove(t.mesh);t.mesh.traverse(o=>o.geometry?.dispose?.());TERRAIN.trees.splice(i,1)}}
+for(let i=TERRAIN.rocks.length-1;i>=0;i--){const rk=TERRAIN.rocks[i],dx=rk.x-gp.x,dz=rk.z-gp.z;if(dx*dx+dz*dz<(r+rk.r)*(r+rk.r)){scene.remove(rk.mesh);rk.mesh.geometry?.dispose?.();TERRAIN.rocks.splice(i,1)}}
+for(let i=TERRAIN.props.length-1;i>=0;i--){const p=TERRAIN.props[i],dx=p.x-gp.x,dz=p.z-gp.z;if(dx*dx+dz*dz<(r+p.r)*(r+p.r)){scene.remove(p.mesh);p.mesh.traverse(o=>o.geometry?.dispose?.());TERRAIN.props.splice(i,1)}}
+}
+else if(PROPS_CATALOG[b]){const baseScale=PROPS_CATALOG[b].baseScale||1,jitter=1+(Math.random()*2-1)*(vr/30)*.6;spawnProp(b,gp.x,gp.z,baseScale*jitter)}
 MapEditor.lastPaint=gp.clone()}
 function maybePaintAtMouse(){const gp=getMouseGroundPoint();if(!gp)return;if(MapEditor.lastPaint){const dx=gp.x-MapEditor.lastPaint.x,dz=gp.z-MapEditor.lastPaint.z;if(dx*dx+dz*dz<MapEditor.spacing*MapEditor.spacing)return}paintAtMouse()}
+// Click-drag roads: start point captured on mousedown, segments laid at mouseup along the line.
+// Road follows the terrain: each tile spans from one ground sample to the next, pitched to match the local slope.
+// Road follows the heightmap triangulation: A* finds shortest path along grid edges from nearest vertex to a to nearest vertex to b, then one tile per edge.
+function paintRoadLine(a,b){
+const sz=TERRAIN.size,sg=TERRAIN.seg,H=TERRAIN.heights;if(!H||!sg)return;
+const cell=sz/sg,W=sg+1;
+// Convert world (x,z) to grid (ix,iz), clamped to bounds
+const toGrid=(x,z)=>[Math.max(0,Math.min(sg,Math.round((x+sz/2)/cell))),Math.max(0,Math.min(sg,Math.round((z+sz/2)/cell)))];
+const toWorld=(ix,iz)=>[ (ix/sg-.5)*sz, (iz/sg-.5)*sz, H[iz*W+ix] ];
+const [sx,sz0]=toGrid(a.x,a.z),[gx,gz]=toGrid(b.x,b.z);
+if(sx===gx&&sz0===gz)return;// trivial: same vertex
+// PlaneGeometry triangulation: each quad split by (+1,+1) diagonal, so neighbors are 4 cardinals + 2 diagonals (+1,+1),(-1,-1)
+const NB=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1]];
+const start=sz0*W+sx,goal=gz*W+gx;
+// A* with slope-aware cost. Steep edges cost extra so paths prefer flat ground.
+const open=new Map(),closed=new Set(),gScore=new Map(),came=new Map();
+const fOf=(id,gv)=>{const z=Math.floor(id/W),x=id-z*W;const dx=(gx-x)*cell,dz=(gz-z)*cell;return gv+Math.sqrt(dx*dx+dz*dz)};
+gScore.set(start,0);open.set(start,fOf(start,0));
+let path=null,iter=0,MAX_ITER=8000;
+while(open.size&&iter++<MAX_ITER){
+// pick lowest-f from open
+let cur=-1,curF=Infinity;for(const[k,v]of open){if(v<curF){curF=v;cur=k}}
+if(cur===goal){path=[];let p=cur;while(p!=null){path.push(p);p=came.get(p)}path.reverse();break}
+open.delete(cur);closed.add(cur);
+const cz=Math.floor(cur/W),cx=cur-cz*W,cy=H[cur];
+for(const[ox,oz]of NB){const nx=cx+ox,nz=cz+oz;if(nx<0||nx>sg||nz<0||nz>sg)continue;const nid=nz*W+nx;if(closed.has(nid))continue;
+const ny=H[nid],wd=Math.sqrt(ox*ox+oz*oz)*cell,dy=ny-cy,slope=Math.abs(dy)/wd,slopePen=1+slope*4;// 4x penalty per unit slope encourages flat paths
+const tentG=(gScore.get(cur)||0)+wd*slopePen;
+const prevG=gScore.get(nid);
+if(prevG==null||tentG<prevG){came.set(nid,cur);gScore.set(nid,tentG);open.set(nid,fOf(nid,tentG))}}
+}
+if(!path||path.length<2){console.warn('[ROAD] A* failed or path too short (iter='+iter+')');addKillFeed('ROAD // PATH TOO LONG OR BLOCKED');return}
+// Lay one road tile per edge in the path. Use lenScale so only the length matches the edge — width stays uniform.
+const TILE_LEN=3.0;
+for(let i=0;i<path.length-1;i++){
+const id0=path[i],id1=path[i+1];
+const z0i=Math.floor(id0/W),x0i=id0-z0i*W,z1i=Math.floor(id1/W),x1i=id1-z1i*W;
+const [wx0,wz0,wy0]=toWorld(x0i,z0i),[wx1,wz1,wy1]=toWorld(x1i,z1i);
+const dx=wx1-wx0,dz=wz1-wz0,dy=wy1-wy0,horiz=Math.sqrt(dx*dx+dz*dz);
+const mx=(wx0+wx1)/2,mz=(wz0+wz1)/2,myw=(wy0+wy1)/2;
+const yaw=-Math.atan2(dz,dx);
+const pitch=horiz>.0001?Math.atan2(dy,horiz):0;
+const lenScale=horiz/TILE_LEN;
+spawnProp('road',mx,mz,1,{lenScale,rotEuler:[0,yaw,-pitch,'YZX'],yOffset:myw-terrainHeightAt(mx,mz)+.025});
+}
+addKillFeed(`ROAD // ${path.length-1} SEGMENTS`)}
+// ===== OBJ DRAG-DROP =====
+// Lazy load Three.js OBJLoader once; on success, register dropped files as custom brush kinds.
+let _objLoader=null,_objLoaderPromise=null;
+function ensureOBJLoader(){if(_objLoader)return Promise.resolve(_objLoader);if(_objLoaderPromise)return _objLoaderPromise;_objLoaderPromise=import('https://unpkg.com/three@0.160.0/examples/jsm/loaders/OBJLoader.js').then(m=>{_objLoader=new m.OBJLoader();return _objLoader}).catch(e=>{_objLoaderPromise=null;throw new Error('OBJLoader CDN failed: '+e.message)});return _objLoaderPromise}
+// Each imported OBJ becomes a kind like 'obj:rocket-launcher'; its geometry is stored in OBJ_LIBRARY for reuse.
+const OBJ_LIBRARY={};  // name -> {geo: BufferGeometry (merged), bbox: Box3, label}
+async function importObjFile(file){
+const loader=await ensureOBJLoader();
+const text=await file.text();
+const group=loader.parse(text);
+// Merge all child meshes into a single BufferGeometry — needed because spawning N instances cheaply means one geometry shared by all
+const geos=[];group.traverse(o=>{if(o.isMesh&&o.geometry)geos.push(o.geometry.clone().applyMatrix4(o.matrixWorld||new M4()))});
+if(!geos.length)throw new Error('OBJ has no meshes');
+const merged=geos[0].clone();// trivial merge for stage 1: use first mesh; full BufferGeometryUtils merge can come later
+// Compute bounding box, center on origin, scale to ~3 units tall (game-friendly size)
+merged.computeBoundingBox();const bb=merged.boundingBox,sz=v3();bb.getSize(sz);const cy=(bb.min.y+bb.max.y)/2,cx=(bb.min.x+bb.max.x)/2,cz=(bb.min.z+bb.max.z)/2;const targetH=3,scale=sz.y>0.001?targetH/sz.y:1;merged.translate(-cx,-bb.min.y,-cz);merged.scale(scale,scale,scale);merged.computeBoundingBox();merged.computeVertexNormals();
+const baseName=file.name.replace(/\.obj$/i,'').toLowerCase().replace(/[^a-z0-9_-]+/g,'-').slice(0,30)||'obj';let name=baseName,n=2;while(OBJ_LIBRARY[name])name=baseName+'-'+(n++);const fbb=merged.boundingBox,r=Math.max(fbb.max.x-fbb.min.x,fbb.max.z-fbb.min.z)*.5,h=fbb.max.y-fbb.min.y;
+OBJ_LIBRARY[name]={geo:merged,r,h,label:file.name.replace(/\.obj$/i,'').toUpperCase().slice(0,18)};
+// Register as a custom prop kind
+PROPS_CATALOG['obj:'+name]={label:OBJ_LIBRARY[name].label,build:function(s){return _bObj(name,s||1)},baseScale:1,hp:30,solid:true,custom:true};
+addKillFeed(`OBJ LOADED // ${name} (h=${h.toFixed(1)}m, r=${r.toFixed(1)}m)`);
+// New kind added — clear thumb cache for that kind, repopulate library if visible
+delete THUMB_CACHE['obj:'+name];
+if(document.getElementById('lib-grid'))populateLibrary();
+return name}
+function _bObj(name,s){const lib=OBJ_LIBRARY[name];if(!lib)return{group:grp(),r:1,h:1};const g=grp();const M=_propMaterials();const m=mesh(lib.geo,mat(new C3(0x9a8e76),{roughness:.9}));m.scale.setScalar(s);g.add(m);m.add(new T.LineSegments(new T.EdgesGeometry(lib.geo),lmat(M.line,{transparent:true,opacity:CFG.wire})));return{group:g,r:lib.r*s,h:lib.h*s}}
+// Drag-drop handlers on the canvas
+function attachObjDrop(){const tgt=document.body;
+tgt.addEventListener('dragover',e=>{if(e.dataTransfer&&[...e.dataTransfer.items].some(i=>i.kind==='file')){e.preventDefault();e.dataTransfer.dropEffect='copy'}});
+tgt.addEventListener('drop',async e=>{const files=e.dataTransfer&&e.dataTransfer.files;if(!files||!files.length)return;e.preventDefault();const objFiles=[...files].filter(f=>/\.obj$/i.test(f.name));if(!objFiles.length)return;for(const f of objFiles){try{const name=await importObjFile(f);CFG.mapBrush='obj:'+name;MapEditor.brush=CFG.mapBrush;sfx.ui(800,.08)}catch(err){console.error('OBJ import failed:',err);addKillFeed(`OBJ FAILED // ${f.name}: ${err.message}`);sfx.ui(200,.1)}}});}
+attachObjDrop();
+// ===== LIBRARY THUMBNAILS =====
+// Render a small offscreen iso-view of any item from the catalog. Returns a data URL.
+let _thumbRenderer=null,_thumbScene=null,_thumbCam=null;
+function ensureThumbRig(){if(_thumbRenderer)return;const tc=document.createElement('canvas');tc.width=96;tc.height=96;_thumbRenderer=new T.WebGLRenderer({canvas:tc,antialias:true,preserveDrawingBuffer:true,alpha:true});_thumbRenderer.setClearColor(0x1c2024,0);_thumbScene=new T.Scene();_thumbScene.background=null;const l=new T.DirectionalLight(0xffffff,.95);l.position.set(5,8,3);_thumbScene.add(l);_thumbScene.add(new T.HemisphereLight(0xdde0d8,0x4a4a40,.6));_thumbScene.add(new T.AmbientLight(0xffffff,.3));_thumbCam=new T.OrthographicCamera(-4,4,4,-4,.1,100);_thumbCam.position.set(7,7,7);_thumbCam.lookAt(0,1.2,0)}
+function renderThumb(kind){ensureThumbRig();const spec=PROPS_CATALOG[kind];let built;if(spec)built=spec.build(spec.baseScale||1);else if(kind==='tree'){built=_buildTreeForThumb()}else if(kind==='rock-s'){const g=grp(),geo=rockGeo(1.3,1.3*.18,Math.random),M=_propMaterials(),m=mesh(geo,mat(new C3(0x7a7468),{roughness:.95}));m.position.y=1;g.add(m);m.add(new T.LineSegments(new T.EdgesGeometry(geo),lmat(M.line,{transparent:true,opacity:.8})));built={group:g,r:1.5,h:2}}else if(kind==='rock-l'){const g=grp(),geo=rockGeo(2.6,2.6*.18,Math.random),M=_propMaterials(),m=mesh(geo,mat(new C3(0x7a7468),{roughness:.95}));m.position.y=1.8;g.add(m);m.add(new T.LineSegments(new T.EdgesGeometry(geo),lmat(M.line,{transparent:true,opacity:.8})));built={group:g,r:3,h:3.5}}else return null;
+// Fit camera to bbox
+const maxDim=Math.max(built.r*2,built.h)*.75;_thumbCam.left=-maxDim;_thumbCam.right=maxDim;_thumbCam.top=maxDim;_thumbCam.bottom=-maxDim;_thumbCam.lookAt(0,built.h*.4,0);_thumbCam.updateProjectionMatrix();
+_thumbScene.add(built.group);_thumbRenderer.render(_thumbScene,_thumbCam);const url=_thumbRenderer.domElement.toDataURL('image/png');_thumbScene.remove(built.group);built.group.traverse(o=>o.geometry?.dispose?.());return url}
+function _buildTreeForThumb(){const g=grp(),M=_propMaterials(),trunkH=1.6,trunkR=.22,foH=2.8,foR=1.2;const trunk=mesh(new T.CylinderGeometry(trunkR*.85,trunkR,trunkH,5),M.wood);trunk.position.y=trunkH/2;g.add(trunk);trunk.add(new T.LineSegments(new T.EdgesGeometry(trunk.geometry),lmat(M.line,{transparent:true,opacity:.8})));const cone=mesh(new T.ConeGeometry(foR,foH,5,1),mat(new C3(0x6a8a5a),{roughness:.85}));cone.position.y=trunkH+foH/2;g.add(cone);cone.add(new T.LineSegments(new T.EdgesGeometry(cone.geometry),lmat(M.line,{transparent:true,opacity:.8})));return{group:g,r:1.3,h:trunkH+foH}}
+function getLibraryItems(){const items=[{kind:'tree',label:'TREE'},{kind:'rock-s',label:'ROCK S'},{kind:'rock-l',label:'ROCK L'}];for(const k of Object.keys(PROPS_CATALOG))items.push({kind:k,label:PROPS_CATALOG[k].label});return items}
+// Cache rendered thumbs since they're identical between renders
+const THUMB_CACHE={};
+function getThumb(kind){if(THUMB_CACHE[kind])return THUMB_CACHE[kind];const url=renderThumb(kind);if(url)THUMB_CACHE[kind]=url;return url}
 function attachEditorMouse(){const c=renderer?.domElement||canvas;if(!c)return;
-c.addEventListener('mousedown',e=>{if(!MapEditor.enabled||e.button!==0)return;e.preventDefault();e.stopPropagation();MapEditor.mouseDown=true;MapEditor.lastPaint=null;paintAtMouse()},true);
-window.addEventListener('mouseup',e=>{if(e.button===0)MapEditor.mouseDown=false});
-c.addEventListener('mousemove',()=>{if(!MapEditor.enabled)return;if(MapEditor.mouseDown)maybePaintAtMouse()})}
-function updateEditorCursor(){if(!MapEditor.enabled)return;const cur=MapEditor.cursorMesh;if(!cur)return;const gp=getMouseGroundPoint();if(!gp)return;cur.position.set(gp.x,gp.y+.05,gp.z);cur.scale.setScalar(MapEditor.radius);const col=MapEditor.brush==='erase'?0xff5040:MapEditor.brush==='tree'?0x9aaf6a:MapEditor.brush==='rock-s'?0xc8c0a8:0xffa050;cur.material.color.setHex(col)}
-function exportMap(){return{version:1,fieldSize:CFG.fieldSize,seed:CFG.seed,trees:TERRAIN.trees.map(t=>({x:+t.x.toFixed(2),z:+t.z.toFixed(2)})),rocks:TERRAIN.rocks.map(r=>({x:+r.x.toFixed(2),z:+r.z.toFixed(2),r:+r.r.toFixed(2)}))}}
-function importMap(data){if(!data||typeof data!=='object')return false;for(const t of TERRAIN.trees){scene.remove(t.mesh);t.mesh.traverse(o=>o.geometry?.dispose?.())}TERRAIN.trees.length=0;for(const r of TERRAIN.rocks){scene.remove(r.mesh);r.mesh.geometry?.dispose?.()}TERRAIN.rocks.length=0;if(Array.isArray(data.trees))for(const t of data.trees)spawnTreeAt(t.x,t.z);if(Array.isArray(data.rocks))for(const r of data.rocks)spawnRockAt(r.x,r.z,r.r||1.5);return true}
+c.addEventListener('mousedown',e=>{if(!MapEditor.enabled||e.button!==0)return;e.preventDefault();e.stopPropagation();MapEditor.mouseDown=true;MapEditor.lastPaint=null;if(MapEditor.brush==='road'){const gp=getMouseGroundPoint();if(gp)MapEditor.roadStart=gp.clone()}else paintAtMouse()},true);
+window.addEventListener('mouseup',e=>{if(e.button!==0)return;if(MapEditor.mouseDown&&MapEditor.brush==='road'&&MapEditor.roadStart){const gp=getMouseGroundPoint();if(gp)paintRoadLine(MapEditor.roadStart,gp);MapEditor.roadStart=null}MapEditor.mouseDown=false});
+c.addEventListener('mousemove',()=>{if(!MapEditor.enabled)return;if(MapEditor.mouseDown&&MapEditor.brush!=='road')maybePaintAtMouse()})}
+function updateEditorCursor(){if(!MapEditor.enabled)return;const cur=MapEditor.cursorMesh;if(!cur)return;const gp=getMouseGroundPoint();if(!gp)return;cur.position.set(gp.x,gp.y+.05,gp.z);cur.scale.setScalar(MapEditor.radius);const b=MapEditor.brush,col=b==='erase'?0xff5040:b==='tree'?0x9aaf6a:b==='rock-s'||b==='rock-l'?0xc8c0a8:0xffa050;cur.material.color.setHex(col)}
+function exportMap(){return{version:2,fieldSize:CFG.fieldSize,seed:CFG.seed,trees:TERRAIN.trees.map(t=>({x:+t.x.toFixed(2),z:+t.z.toFixed(2)})),rocks:TERRAIN.rocks.map(r=>({x:+r.x.toFixed(2),z:+r.z.toFixed(2),r:+r.r.toFixed(2)})),props:(TERRAIN.props||[]).map(p=>({kind:p.kind,x:+p.x.toFixed(2),z:+p.z.toFixed(2)}))}}
+function importMap(data){if(!data||typeof data!=='object')return false;for(const t of TERRAIN.trees){scene.remove(t.mesh);t.mesh.traverse(o=>o.geometry?.dispose?.())}TERRAIN.trees.length=0;for(const r of TERRAIN.rocks){scene.remove(r.mesh);r.mesh.geometry?.dispose?.()}TERRAIN.rocks.length=0;for(const p of(TERRAIN.props||[])){scene.remove(p.mesh);p.mesh.traverse(o=>o.geometry?.dispose?.())}if(!TERRAIN.props)TERRAIN.props=[];TERRAIN.props.length=0;if(Array.isArray(data.trees))for(const t of data.trees)spawnTreeAt(t.x,t.z);if(Array.isArray(data.rocks))for(const r of data.rocks)spawnRockAt(r.x,r.z,r.r||1.5);if(Array.isArray(data.props))for(const p of data.props)spawnProp(p.kind,p.x,p.z);return true}
 // ===== HELI SPAWN =====
 let heliSpawnTimer=0;
 function maybeSpawnHelicopter(dt){if(!CFG.heliEnabled)return;if(gameState!=='playing')return;if(!roundActive)return;heliSpawnTimer+=dt;const itv=Math.max(3,CFG.heliInterval||25);if(heliSpawnTimer<itv)return;heliSpawnTimer=0;const ang=Math.random()*Math.PI*2,r=(TERRAIN.size||480)*.55,x=Math.cos(ang)*r,z=Math.sin(ang)*r,y=30,tgt=player&&!player.dead?player:null;const h=new Helicopter({name:`HELI-${Math.floor(Math.random()*900+100)}`,pos:v3(x,y,z),target:tgt});ENTITIES.helicopters.push(h);addKillFeed(`! HOSTILE HELI INBOUND // ${h.name}`)}
@@ -845,7 +982,7 @@ physics:[
 style:[
 ['PALETTE',[['sw','palette','COLOR PALETTE']]],
 ['WIRE & FILL',[['sl','wire','WIRE OPACITY',0,1,.05,F2,VIS_CB],['sl','fill','FILL OPACITY',.3,1,.05,F2,VIS_CB],['sl','grid','GRID OPACITY',0,1,.05,F2,VIS_CB],['sl','fog','FOG',0,.02,.001,F3,FOG_CB]]],
-['CAMERA & POST',[['sl','bright','BRIGHTNESS',50,200,1,FMT],['sl','contrast','CONTRAST',50,200,1,FMT],['sl','zoom','ZOOM',10,120,1,FMT,ZOOM_CB],['sl','camRot','CAM ROTATION (°)',0,360,1,FMT],['sl','hpAlpha','HP BAR ALPHA',0,1,.05,F2,HPA_CB]]],
+['CAMERA & POST',[['sl','bright','BRIGHTNESS',50,200,1,FMT,VIS_CB],['sl','contrast','CONTRAST',50,200,1,FMT,VIS_CB],['sl','zoom','ZOOM',10,120,1,FMT,ZOOM_CB],['sl','camRot','CAM ROTATION (°)',0,360,1,FMT],['sl','hpAlpha','HP BAR ALPHA',0,1,.05,F2,HPA_CB]]],
 ['HUD',[['tg','showCross','CROSSHAIR'],['tg','showHint','CONTROL HINTS']]],
 ],
 audio:[
@@ -859,6 +996,7 @@ map:[
 ['TERRAIN',[['sl','fieldSize','FIELD SIZE',96,512,8,FMT],['sl','rough','TERRAIN ROUGHNESS',.1,2,.05,F2],['sl','trees','TREE COUNT',0,1200,10,FMT],['sl','rocks','ROCK COUNT',0,400,5,FMT],['sl','rivers','RIVER COUNT',0,3,1,FI],['sl','seed','SEED',1,9999,1,FMT]]],
 ['DESTRUCTIBLES',[['sl','treeHp','TREE HP',1,10,1,FMT],['sl','rockHp','ROCK HP',1,20,1,FMT]]],
 ['EDITOR',[['br']]],
+['LIBRARY',[['lib']]],
 ['IMPORT / EXPORT',[['ta']]],
 ],
 };
@@ -868,26 +1006,29 @@ function buildPanel(){
 const groupTpl=(title,inner)=>`<div class=field-group><div class=field-group-ttl>${title}</div>${inner}</div>`;
 function fieldHtml(f){
 const t=f[0];
-if(t==='sl'){const[,k,lab,mn,mx,st,fmt,cb]=f;FMTS[k]=fmt||FI;return `<div class=field><div class=field-row><div class=field-label>${lab}</div><div class=field-val id=lbl-${k}></div></div><input type=range id=cfg-${k} min=${mn} max=${mx} step=${st}></div>`}
-if(t==='tg'){const[,k,lab]=f;return `<div class="field toggle"><div class=field-label>${lab}</div><div class="toggle-sw${CFG[k]?' on':''}" data-cfg=${k}></div></div>`}
+if(t==='sl'){const[,k,lab,mn,mx,st,fmt,cb]=f;FMTS[k]=fmt||FI;const def=CFG_DEFAULTS[k];const tt=`${lab} — default ${def} (${mn}..${mx})`;return `<div class=field title="${tt}"><div class=field-row><div class=field-label>${lab}</div><div class=field-val id=lbl-${k}></div></div><input type=range id=cfg-${k} min=${mn} max=${mx} step=${st} title="${tt}"></div>`}
+if(t==='tg'){const[,k,lab]=f;const tt=`${lab} — default ${CFG_DEFAULTS[k]?'ON':'OFF'}`;return `<div class="field toggle" title="${tt}"><div class=field-label>${lab}</div><div class="toggle-sw${CFG[k]?' on':''}" data-cfg=${k}></div></div>`}
 if(t==='sg'){const[,k,lab,opts]=f;const btns=opts.map(([v,t2])=>`<button data-v=${v}${CFG[k]===v?' class=on':''}>${t2}</button>`).join('');return `<div class=field><div class=field-row><div class=field-label>${lab}</div></div><div class=seg id=seg-${k}>${btns}</div></div>`}
-if(t==='dd'){const[,k,lab]=f;const opts=[['synth','SYNTH'],['none','NONE']].concat(Object.keys(SAMPLE_FILES).map(s=>[s,s.toUpperCase().replace(/_/g,' ')]));const cur=CFG[k];const optHtml=opts.map(([v,t2])=>`<option value="${v}"${v===cur?' selected':''}>${t2}</option>`).join('');return `<div class=field><div class=field-row><div class=field-label>${lab}</div></div><select id=cfg-${k} class=dropdown style="width:100%;background:var(--bg-2);color:var(--ink);border:1px solid var(--line-dim);padding:6px 8px;font-size:10px;font-family:inherit;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">${optHtml}</select></div>`}
+if(t==='dd'){const[,k,lab]=f;const opts=[['synth','SYNTH'],['none','NONE']].concat(Object.keys(SAMPLE_FILES).map(s=>[s,s.toUpperCase().replace(/_/g,' ')]));const cur=CFG[k];const optHtml=opts.map(([v,t2])=>`<option value="${v}"${v===cur?' selected':''}>${t2}</option>`).join('');const tt=`${lab} — sample source (default ${CFG_DEFAULTS[k]})`;return `<div class=field title="${tt}"><div class=field-row><div class=field-label>${lab}</div></div><select id=cfg-${k} class=dropdown title="${tt}" style="width:100%;background:var(--bg-2);color:var(--ink);border:1px solid var(--line-dim);padding:6px 8px;font-size:10px;font-family:inherit;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">${optHtml}</select></div>`}
 if(t==='sfxstatus'){return `<div class=field><div class=field-row><div class=field-label>SAMPLES LOADED</div><div class=field-val id=sfx-load-status>—</div></div><div id=sfx-load-warn style="font-size:9px;color:var(--danger);letter-spacing:.15em;margin-top:4px;display:none"></div><div class=btn-row style="margin-top:8px"><button class=btn id=btn-sfx-reload>RELOAD SAMPLES</button></div></div>`}
 if(t==='sw'){return `<div class=field><div class=field-row><div class=field-label>COLOR PALETTE</div><div class=field-val id=lbl-palette></div></div><div class=swatches id=palette-swatches></div></div>`}
 if(t==='bt'){const[,kind]=f;if(kind==='match')return `<div class=btn-row><button class=btn id=btn-restart>RESTART</button><button class=btn id=btn-pause>PAUSE</button></div><div class=btn-row style="margin-top:8px"><button class=btn id=btn-regen>NEW MAP</button><button class="btn danger" id=btn-quit>QUIT</button></div><div class=btn-row style="margin-top:8px"><button class="btn danger" id=btn-reset-all>RESET ALL DEFAULTS</button></div>`;if(kind==='sfxtest')return `<div class=btn-row><button class=btn id=btn-test-fire>TEST FIRE</button><button class=btn id=btn-test-boom>TEST BOOM</button></div>`}
 if(t==='br'){return `<div class=btn-row><button class=btn id=map-editor-toggle>EDITOR :: OFF</button></div>
-<div class=field style="margin-top:14px"><div class=field-row><div class=field-label>BRUSH</div></div><div class=seg id=seg-brush><button data-v=tree class=on>TREE</button><button data-v=rock-s>ROCK S</button><button data-v=rock-l>ROCK L</button><button data-v=erase>ERASE</button></div></div>
+<div class=field style="margin-top:14px"><div class=field-row><div class=field-label>BRUSH</div></div><div class=seg id=seg-brush style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line-dim)"><button data-v=tree class=on title="Tree (single pine)">TREE</button><button data-v=rock-s title="Small rock">ROCK S</button><button data-v=rock-l title="Large rock">ROCK L</button><button data-v=woods title="Cluster of trees">WOODS</button><button data-v=house title="House with pitched roof">HOUSE</button><button data-v=barn title="Larger barn structure">BARN</button><button data-v=watchtower title="Wooden watchtower">TOWER</button><button data-v=well title="Stone water well">WELL</button><button data-v=road title="Road segment, ~5m">ROAD</button><button data-v=barrier title="Striped road barrier">BARRIER</button><button data-v=cow title="Cow (static)">COW</button><button data-v=truck title="Cargo truck">TRUCK</button><button data-v=car title="Civilian car">CAR</button><button data-v=erase title="Erase items in brush radius">ERASE</button></div></div>
 <div class=field><div class=field-row><div class=field-label>BRUSH RADIUS</div><div class=field-val id=lbl-brushR>3.0</div></div><input type=range id=cfg-brushR min=1 max=12 step=.5 value=3></div>
 <div class=field><div class=field-row><div class=field-label>BRUSH SPACING</div><div class=field-val id=lbl-brushSpacing>2.00</div></div><input type=range id=cfg-brushSpacing min=.5 max=8 step=.1 value=2></div>
-<div class=field><div class=field-row><div class=field-label>BRUSH VARIETY</div><div class=field-val id=lbl-brushVariety>${CFG.brushVariety}</div></div><input type=range id=cfg-brushVariety min=0 max=10 step=1 value=${CFG.brushVariety}></div>
+<div class=field><div class=field-row><div class=field-label>BRUSH VARIETY</div><div class=field-val id=lbl-brushVariety>${CFG.brushVariety}</div></div><input type=range id=cfg-brushVariety min=0 max=30 step=1 value=${CFG.brushVariety}></div>
 <div class=btn-row style="margin-top:6px"><button class=btn id=map-clear-trees>CLEAR TREES</button><button class=btn id=map-clear-rocks>CLEAR ROCKS</button></div>
 <div class=btn-row style="margin-top:6px"><button class="btn danger" id=map-clear-all>CLEAR ALL</button></div>`}
+if(t==='lib'){return `<div class=field><div class=field-row><div class=field-label>BRUSH LIBRARY</div><div class=field-val style="font-size:9px;color:var(--ink-dim)">DRAG .OBJ HERE</div></div><div id=lib-grid style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px;max-height:340px;overflow-y:auto"></div></div>`}
 if(t==='ta'){return `<div class=btn-row><button class=btn id=map-export-json>EXPORT TO BOX</button><button class=btn id=map-export-download>DOWNLOAD .JSON</button></div>
 <textarea id=map-json-area style="margin-top:8px;width:100%;height:120px;background:rgba(0,0,0,.4);color:var(--ink);border:1px solid var(--line-dim);padding:6px;font-family:ui-monospace,monospace;font-size:10px"></textarea>
 <div class=btn-row style="margin-top:6px"><button class=btn id=map-import-json>IMPORT FROM BOX</button></div>`}
 return ''}
 for(const[paneId,groups]of Object.entries(PANEL)){const root=$('#pane-'+paneId);if(!root)continue;root.innerHTML=groups.map(([gT,fs])=>groupTpl(gT,fs.map(fieldHtml).join(''))).join('')}}
 buildPanel();
+function populateLibrary(){const grid=$('#lib-grid');if(!grid)return;grid.innerHTML='';const items=getLibraryItems();for(const it of items){const cell=document.createElement('button');cell.className='lib-cell';cell.dataset.kind=it.kind;cell.title=it.label;cell.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:4px;border:1px solid var(--line-dim);background:'+(CFG.mapBrush===it.kind?'rgba(184,121,74,.18)':'rgba(0,0,0,.3)')+';cursor:pointer;font-family:inherit;color:var(--ink);transition:all .12s';const img=document.createElement('img');img.style.cssText='width:64px;height:64px;background:rgba(0,0,0,.4);display:block;image-rendering:pixelated';const url=getThumb(it.kind);if(url)img.src=url;cell.appendChild(img);const lab=document.createElement('div');lab.style.cssText='font-size:8px;color:var(--ink-dim);letter-spacing:.15em;margin-top:3px;text-align:center;line-height:1.2';lab.textContent=it.label;cell.appendChild(lab);cell.addEventListener('mouseenter',()=>cell.style.borderColor='var(--accent)');cell.addEventListener('mouseleave',()=>cell.style.borderColor='var(--line-dim)');cell.addEventListener('click',()=>{CFG.mapBrush=it.kind;MapEditor.brush=it.kind;sfx.ui(640,.05);populateLibrary();const seg=$('#seg-brush');if(seg)seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===it.kind))});grid.appendChild(cell)}}
+populateLibrary();
 // hamburger
 dom.hamburger.addEventListener('click',()=>{if(devPopout&&!devPopout.closed){devPopout.focus();return}document.body.classList.toggle('panel-open');sfx.ui(700,.06)});
 // ===== DEV POPOUT (second window) =====
@@ -951,7 +1092,7 @@ document.querySelectorAll('select[id^="cfg-"]').forEach(el=>{const k=el.id.repla
 document.querySelectorAll('.toggle-sw[data-cfg]').forEach(el=>{const k=el.dataset.cfg;if(k in CFG)el.classList.toggle('on',!!CFG[k])});
 ['sfxProfile','mapBrush'].forEach(k=>{const seg=$('#seg-'+k);if(seg)seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===CFG[k]))});
 document.querySelectorAll('#palette-swatches > div').forEach((sw,i)=>sw.classList.toggle('on',i===CFG.palette));const pl=$('#lbl-palette');if(pl)pl.textContent=PALETTES[CFG.palette].name}
-Object.assign(window,{CFG,CFG_DEFAULTS,PANEL,PALETTES,SAMPLE_FILES,FMTS,FI,FMT,F1,F2,F3,SMP_KIND,sfx,applyVisuals,applyHpAlpha,applyPaletteToDOM,generateBattlefield,resetAllConfig,onResize,getMapEditor:()=>MapEditor,exportMap,importMap,startMatch,togglePauseFromPopout:()=>{const b=$('#btn-pause');if(b)b.click()},exportPresetZip,importPresetZip,refreshMainPanelFromCfg,KODKOD_VERSION});
+// (deferred: Object.assign(window, {...}) lives at the end of the module so all referenced names are defined)
 function buildDevPopoutHtml(){return `<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><title>KODKOD // DEV PANEL</title>
 <style>
 :root{--bg-0:#1c2024;--bg-1:#262b30;--bg-2:#313840;--line:#8e8b78;--line-dim:#5a5a4f;--ink:#d8d2bd;--ink-dim:#9c9684;--accent:#b8794a;--danger:#a8483a;--ok:#7a8b5a}
@@ -1024,7 +1165,7 @@ const op=window.opener;
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 function checkLink(){const stat=$('#status'),fl=$('#foot-link');if(!op||op.closed){stat.textContent='UNLINKED ✗';stat.classList.add('warn');fl.textContent='OPENER // GONE — CLOSE THIS WINDOW';return false}return true}
 if(!checkLink()){return}
-const CFG=op.CFG,PANEL=op.PANEL,PALETTES=op.PALETTES,SAMPLE_FILES=op.SAMPLE_FILES,FMTS=op.FMTS,FI=op.FI,SMP_KIND=op.SMP_KIND;
+const CFG=op.CFG,CFG_DEFAULTS=op.CFG_DEFAULTS,PANEL=op.PANEL,PALETTES=op.PALETTES,SAMPLE_FILES=op.SAMPLE_FILES,FMTS=op.FMTS,FI=op.FI,SMP_KIND=op.SMP_KIND;
 // Build tabs (left strip) with friendly subtitles
 const TAB_INFO={game:'CAMPAIGN & AI',physics:'TUNING',style:'PALETTE & POST',audio:'SFX ROUTING',map:'TERRAIN & EDITOR'};
 const tabKeys=Object.keys(PANEL);
@@ -1032,21 +1173,22 @@ $('#tabs').innerHTML=tabKeys.map((k,i)=>'<div class="tab'+(i===0?' active':'')+'
 // Build panes
 function fieldHtml(f){
 const t=f[0];
-if(t==='sl'){const[,k,lab,mn,mx,st,fmt,cb]=f;FMTS[k]=fmt||FI;return '<div class=field><div class=field-row><div class=field-label>'+lab+'</div><div class=field-val id=lbl-'+k+'></div></div><input type=range id=cfg-'+k+' min='+mn+' max='+mx+' step='+st+'></div>'}
-if(t==='tg'){const[,k,lab]=f;return '<div class="field toggle"><div class=field-label>'+lab+'</div><div class="toggle-sw'+(CFG[k]?' on':'')+'" data-cfg='+k+'></div></div>'}
+if(t==='sl'){const k=f[1],lab=f[2],mn=f[3],mx=f[4],st=f[5],fmt=f[6];FMTS[k]=fmt||FI;const def=CFG_DEFAULTS[k];const tt=lab+' — default '+def+' ('+mn+'..'+mx+')';return '<div class=field title="'+tt+'"><div class=field-row><div class=field-label>'+lab+'</div><div class=field-val id=lbl-'+k+'></div></div><input type=range id=cfg-'+k+' min='+mn+' max='+mx+' step='+st+' title="'+tt+'"></div>'}
+if(t==='tg'){const k=f[1],lab=f[2];const tt=lab+' — default '+(CFG_DEFAULTS[k]?'ON':'OFF');return '<div class="field toggle" title="'+tt+'"><div class=field-label>'+lab+'</div><div class="toggle-sw'+(CFG[k]?' on':'')+'" data-cfg='+k+'></div></div>'}
 if(t==='sg'){const[,k,lab,opts]=f;const btns=opts.map(function(o){return '<button data-v='+o[0]+(CFG[k]===o[0]?' class=on':'')+'>'+o[1]+'</button>'}).join('');return '<div class=field><div class=field-row><div class=field-label>'+lab+'</div></div><div class=seg id=seg-'+k+'>'+btns+'</div></div>'}
-if(t==='dd'){const[,k,lab]=f;const opts=[['synth','SYNTH'],['none','NONE']].concat(Object.keys(SAMPLE_FILES).map(function(s){return[s,s.toUpperCase().replace(/_/g,' ')]}));const cur=CFG[k];const optHtml=opts.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===cur?' selected':'')+'>'+o[1]+'</option>'}).join('');return '<div class=field><div class=field-row><div class=field-label>'+lab+'</div></div><select id=cfg-'+k+' class=dropdown>'+optHtml+'</select></div>'}
+if(t==='dd'){const k=f[1],lab=f[2];const opts=[['synth','SYNTH'],['none','NONE']].concat(Object.keys(SAMPLE_FILES).map(function(s){return[s,s.toUpperCase().replace(/_/g,' ')]}));const cur=CFG[k];const optHtml=opts.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===cur?' selected':'')+'>'+o[1]+'</option>'}).join('');const tt=lab+' — sample source (default '+CFG_DEFAULTS[k]+')';return '<div class=field title="'+tt+'"><div class=field-row><div class=field-label>'+lab+'</div></div><select id=cfg-'+k+' class=dropdown title="'+tt+'">'+optHtml+'</select></div>'}
 if(t==='sfxstatus'){return '<div class=field><div class=field-row><div class=field-label>SAMPLES LOADED</div><div class=field-val id=sfx-load-status>—</div></div><div id=sfx-load-warn style="font-size:9px;color:var(--danger);letter-spacing:.15em;margin-top:4px;display:none"></div><div class=btn-row style="margin-top:8px"><button class=btn id=btn-sfx-reload>RELOAD SAMPLES</button></div></div>'}
 if(t==='sw'){return '<div class=field><div class=field-row><div class=field-label>COLOR PALETTE</div><div class=field-val id=lbl-palette></div></div><div class=swatches id=palette-swatches></div></div>'}
 if(t==='bt'){const[,kind]=f;if(kind==='match')return '<div class=btn-row><button class=btn id=btn-restart>RESTART</button><button class=btn id=btn-pause>PAUSE</button></div><div class=btn-row style="margin-top:8px"><button class=btn id=btn-regen>NEW MAP</button></div><div class=btn-row style="margin-top:8px"><button class="btn danger" id=btn-reset-all>RESET ALL DEFAULTS</button></div>';if(kind==='sfxtest')return '<div class=btn-row><button class=btn id=btn-test-fire>TEST FIRE</button><button class=btn id=btn-test-boom>TEST BOOM</button></div>'}
-if(t==='br'){return '<div class=btn-row><button class=btn id=map-editor-toggle>EDITOR :: '+(op.getMapEditor().enabled?'ON':'OFF')+'</button></div>'+
-'<div class=field style="margin-top:14px"><div class=field-row><div class=field-label>BRUSH</div></div><div class=seg id=seg-brush><button data-v=tree'+(CFG.mapBrush==='tree'?' class=on':'')+'>TREE</button><button data-v=rock-s'+(CFG.mapBrush==='rock-s'?' class=on':'')+'>ROCK S</button><button data-v=rock-l'+(CFG.mapBrush==='rock-l'?' class=on':'')+'>ROCK L</button><button data-v=erase'+(CFG.mapBrush==='erase'?' class=on':'')+'>ERASE</button></div></div>'+
+if(t==='br'){const brushDefs=[['tree','TREE','Tree (single pine)'],['rock-s','ROCK S','Small rock'],['rock-l','ROCK L','Large rock'],['woods','WOODS','Cluster of trees'],['house','HOUSE','House with pitched roof'],['barn','BARN','Larger barn structure'],['watchtower','TOWER','Wooden watchtower'],['well','WELL','Stone water well'],['road','ROAD','Road segment, ~5m'],['barrier','BARRIER','Striped road barrier'],['cow','COW','Cow (static)'],['truck','TRUCK','Cargo truck'],['car','CAR','Civilian car'],['erase','ERASE','Erase items in brush radius']];const brushBtns=brushDefs.map(function(d){return '<button data-v='+d[0]+(CFG.mapBrush===d[0]?' class=on':'')+' title="'+d[2]+'">'+d[1]+'</button>'}).join('');return '<div class=btn-row><button class=btn id=map-editor-toggle>EDITOR :: '+(op.getMapEditor().enabled?'ON':'OFF')+'</button></div>'+
+'<div class=field style="margin-top:14px"><div class=field-row><div class=field-label>BRUSH</div></div><div class=seg id=seg-brush style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line-dim)">'+brushBtns+'</div></div>'+
 '<div class=field><div class=field-row><div class=field-label>BRUSH RADIUS</div><div class=field-val id=lbl-brushR>'+op.getMapEditor().radius.toFixed(1)+'</div></div><input type=range id=cfg-brushR min=1 max=12 step=.5 value='+op.getMapEditor().radius+'></div>'+
 '<div class=field><div class=field-row><div class=field-label>BRUSH SPACING</div><div class=field-val id=lbl-brushSpacing>'+op.getMapEditor().spacing.toFixed(2)+'</div></div><input type=range id=cfg-brushSpacing min=.5 max=8 step=.1 value='+op.getMapEditor().spacing+'></div>'+
-'<div class=field><div class=field-row><div class=field-label>BRUSH VARIETY</div><div class=field-val id=lbl-brushVariety>'+CFG.brushVariety+'</div></div><input type=range id=cfg-brushVariety min=0 max=10 step=1 value='+CFG.brushVariety+'></div>'+
+'<div class=field><div class=field-row><div class=field-label>BRUSH VARIETY</div><div class=field-val id=lbl-brushVariety>'+CFG.brushVariety+'</div></div><input type=range id=cfg-brushVariety min=0 max=30 step=1 value='+CFG.brushVariety+'></div>'+
 '<div class=btn-row style="margin-top:6px"><button class=btn id=map-clear-trees>CLEAR TREES</button><button class=btn id=map-clear-rocks>CLEAR ROCKS</button></div>'+
 '<div class=btn-row style="margin-top:6px"><button class="btn danger" id=map-clear-all>CLEAR ALL</button></div>'}
 if(t==='ta'){return '<div class=btn-row><button class=btn id=map-export-json>EXPORT TO BOX</button><button class=btn id=map-export-download>DOWNLOAD .JSON</button></div><textarea id=map-json-area style="margin-top:8px;width:100%;height:120px"></textarea><div class=btn-row style="margin-top:6px"><button class=btn id=map-import-json>IMPORT FROM BOX</button></div>'}
+if(t==='lib'){return '<div class=field><div class=field-row><div class=field-label>BRUSH LIBRARY</div><div class=field-val style="font-size:9px;color:var(--ink-dim)">DRAG .OBJ TO MAIN WINDOW</div></div><div id=lib-grid style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px;max-height:520px;overflow-y:auto"></div></div>'}
 return ''}
 const groupTpl=function(title,inner){return '<div class=field-group><div class=field-group-ttl>'+title+'</div>'+inner+'</div>'};
 let body='';for(const k of tabKeys){const groups=PANEL[k];body+='<div class="pane'+(k===tabKeys[0]?' active':'')+'" data-pane="'+k+'">'+groups.map(function(g){return groupTpl(g[0],g[1].map(fieldHtml).join(''))}).join('')+'</div>'}
@@ -1076,14 +1218,17 @@ document.querySelectorAll('input[type=range][id^="cfg-"]').forEach(function(el){
 document.querySelectorAll('select[id^="cfg-"]').forEach(function(el){const k=el.id.replace('cfg-','');if(k in CFG)el.value=CFG[k]});
 document.querySelectorAll('.toggle-sw[data-cfg]').forEach(function(el){const k=el.dataset.cfg;if(k in CFG)el.classList.toggle('on',!!CFG[k])});
 ['sfxProfile','mapBrush'].forEach(function(k){const seg=document.getElementById('seg-'+k);if(seg)seg.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.dataset.v===CFG[k])})});
-document.querySelectorAll('#palette-swatches > div').forEach(function(sw,i){sw.classList.toggle('on',i===CFG.palette)});const pl=document.getElementById('lbl-palette');if(pl)pl.textContent=PALETTES[CFG.palette].name}
+document.querySelectorAll('#palette-swatches > div').forEach(function(sw,i){sw.classList.toggle('on',i===CFG.palette)});const pl=document.getElementById('lbl-palette');if(pl)pl.textContent=PALETTES[CFG.palette].name;populateLibraryPop()}
+// Library grid populated from main window's thumbnails
+function populateLibraryPop(){const grid=document.getElementById('lib-grid');if(!grid||!checkLink())return;grid.innerHTML='';const items=op.getLibraryItems();for(const it of items){const cell=document.createElement('button');cell.dataset.kind=it.kind;cell.title=it.label;cell.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:4px;border:1px solid var(--line-dim);background:'+(CFG.mapBrush===it.kind?'rgba(184,121,74,.18)':'rgba(0,0,0,.3)')+';cursor:pointer;font-family:inherit;color:var(--ink);transition:all .12s';const img=document.createElement('img');img.style.cssText='width:64px;height:64px;background:rgba(0,0,0,.4);display:block;image-rendering:pixelated';try{const url=op.getThumb(it.kind);if(url)img.src=url}catch(e){}cell.appendChild(img);const lab=document.createElement('div');lab.style.cssText='font-size:8px;color:var(--ink-dim);letter-spacing:.15em;margin-top:3px;text-align:center;line-height:1.2';lab.textContent=it.label;cell.appendChild(lab);cell.addEventListener('mouseenter',function(){cell.style.borderColor='var(--accent)'});cell.addEventListener('mouseleave',function(){cell.style.borderColor='var(--line-dim)'});cell.addEventListener('click',function(){if(!checkLink())return;CFG.mapBrush=it.kind;op.getMapEditor().brush=it.kind;op.sfx.ui(640,.05);populateLibraryPop();const seg=document.getElementById('seg-brush');if(seg)seg.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.dataset.v===it.kind)})});grid.appendChild(cell)}}
+populateLibraryPop();
 // Tab switching
 $$('.tab').forEach(function(t){t.addEventListener('click',function(){if(!checkLink())return;$$('.tab').forEach(function(x){x.classList.remove('active')});$$('.pane').forEach(function(x){x.classList.remove('active')});t.classList.add('active');$('[data-pane="'+t.dataset.tab+'"]').classList.add('active');try{op.sfx.ui(500,.04)}catch(e){}})});
 // Bind sliders, segs, dropdowns by walking PANEL the same way the main window does
 function bindSlider(key,fmt,onChange){const el=$('#cfg-'+key),lbl=$('#lbl-'+key);if(!el)return;el.value=CFG[key];lbl.textContent=fmt(CFG[key]);el.addEventListener('input',function(){if(!checkLink())return;const v=parseFloat(el.value);CFG[key]=v;lbl.textContent=fmt(v);try{onChange&&onChange(v)}catch(e){console.warn(e)}})}
 function bindSeg(key,after){const seg=$('#seg-'+key);if(!seg)return;seg.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){if(!checkLink())return;seg.querySelectorAll('button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');CFG[key]=b.dataset.v;try{op.sfx.ui(600,.05);after&&after()}catch(e){}})})}
 function bindDD(key,after){const el=$('#cfg-'+key);if(!el)return;el.addEventListener('change',function(){if(!checkLink())return;CFG[key]=el.value;try{op.sfx.ensure();op.sfx.preview(el.value,SMP_KIND[key]||'fire');after&&after()}catch(e){}})}
-for(const k of tabKeys)for(const g of PANEL[k])for(const f of g[1]){const t=f[0];if(t==='sl'){bindSlider(f[1],f[6]||FI,f[7])}else if(t==='sg'){bindSeg(f[1])}else if(t==='dd'){bindDD(f[1],(f[1]==='smpIdle'||f[1]==='smpDrive')?function(){op.sfx.applyEngine()}:null)}}
+for(const k of tabKeys)for(const g of PANEL[k])for(const f of g[1]){const t=f[0];if(t==='sl'){bindSlider(f[1],f[6]||FI,f[7])}else if(t==='sg'){bindSeg(f[1],f[1]==='mapBrush'?function(){op.getMapEditor().brush=CFG.mapBrush||'tree'}:null)}else if(t==='dd'){bindDD(f[1],(f[1]==='smpIdle'||f[1]==='smpDrive')?function(){op.sfx.applyEngine()}:null)}}
 // Toggles
 $$('.toggle-sw').forEach(function(t){t.addEventListener('click',function(){if(!checkLink())return;t.classList.toggle('on');CFG[t.dataset.cfg]=t.classList.contains('on');try{op.sfx.ui(560,.05);op.applyVisuals()}catch(e){}})});
 // Palette swatches
@@ -1106,6 +1251,8 @@ const r=$('#cfg-brushR'),rl=$('#lbl-brushR');if(r)r.addEventListener('input',fun
 const sp=$('#cfg-brushSpacing'),spl=$('#lbl-brushSpacing');if(sp)sp.addEventListener('input',function(){if(!checkLink())return;ME.spacing=parseFloat(sp.value);spl.textContent=ME.spacing.toFixed(2)});
 const bv=$('#cfg-brushVariety'),bvl=$('#lbl-brushVariety');if(bv)bv.addEventListener('input',function(){if(!checkLink())return;CFG.brushVariety=parseInt(bv.value);bvl.textContent=CFG.brushVariety});
 call('map-editor-toggle',function(){const btn=op.document.getElementById('map-editor-toggle');if(btn)btn.click();const me=op.getMapEditor();$('#map-editor-toggle').textContent='EDITOR :: '+(me.enabled?'ON':'OFF')});
+// Brush seg-buttons must update both CFG.mapBrush AND the live MapEditor.brush
+(function(){const seg=$('#seg-brush');if(!seg)return;seg.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){if(!checkLink())return;seg.querySelectorAll('button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');CFG.mapBrush=b.dataset.v;op.getMapEditor().brush=CFG.mapBrush;try{op.sfx.ui(600,.05)}catch(e){}populateLibraryPop()})})})();
 call('map-clear-trees',function(){const b=op.document.getElementById('map-clear-trees');if(b)b.click()});
 call('map-clear-rocks',function(){const b=op.document.getElementById('map-clear-rocks');if(b)b.click()});
 call('map-clear-all',function(){const b=op.document.getElementById('map-clear-all');if(b)b.click()});
@@ -1178,12 +1325,12 @@ $('#btn-test-boom').addEventListener('click',()=>sfx.explosion(1));
 // map editor
 attachEditorMouse();
 $('#map-editor-toggle')?.addEventListener('click',()=>{sfx.ui(700,.05);setEditorEnabled(!MapEditor.enabled)});
-bindSeg('#seg-brush','mapBrush',()=>{MapEditor.brush=CFG.mapBrush||'tree'});
+bindSeg('#seg-brush','mapBrush',()=>{MapEditor.brush=CFG.mapBrush||'tree';populateLibrary()});
 CFG.mapBrush='tree';
 {const r=$('#cfg-brushR'),rl=$('#lbl-brushR');if(r)r.addEventListener('input',()=>{MapEditor.radius=parseFloat(r.value);rl.textContent=MapEditor.radius.toFixed(1)});const s=$('#cfg-brushSpacing'),sl=$('#lbl-brushSpacing');if(s)s.addEventListener('input',()=>{MapEditor.spacing=parseFloat(s.value);sl.textContent=MapEditor.spacing.toFixed(2)});const v=$('#cfg-brushVariety'),vl=$('#lbl-brushVariety');if(v)v.addEventListener('input',()=>{CFG.brushVariety=parseInt(v.value);vl.textContent=CFG.brushVariety})}
 $('#map-clear-trees')?.addEventListener('click',()=>{sfx.ui(500,.05);for(const t of TERRAIN.trees){scene.remove(t.mesh);t.mesh.traverse(o=>o.geometry?.dispose?.())}TERRAIN.trees.length=0});
 $('#map-clear-rocks')?.addEventListener('click',()=>{sfx.ui(500,.05);for(const r of TERRAIN.rocks){scene.remove(r.mesh);r.mesh.geometry?.dispose?.()}TERRAIN.rocks.length=0});
-$('#map-clear-all')?.addEventListener('click',()=>{sfx.ui(400,.08);for(const t of TERRAIN.trees){scene.remove(t.mesh);t.mesh.traverse(o=>o.geometry?.dispose?.())}TERRAIN.trees.length=0;for(const r of TERRAIN.rocks){scene.remove(r.mesh);r.mesh.geometry?.dispose?.()}TERRAIN.rocks.length=0});
+$('#map-clear-all')?.addEventListener('click',()=>{sfx.ui(400,.08);for(const t of TERRAIN.trees){scene.remove(t.mesh);t.mesh.traverse(o=>o.geometry?.dispose?.())}TERRAIN.trees.length=0;for(const r of TERRAIN.rocks){scene.remove(r.mesh);r.mesh.geometry?.dispose?.()}TERRAIN.rocks.length=0;for(const p of(TERRAIN.props||[])){scene.remove(p.mesh);p.mesh.traverse(o=>o.geometry?.dispose?.())}if(TERRAIN.props)TERRAIN.props.length=0});
 $('#map-export-json')?.addEventListener('click',()=>{sfx.ui(700,.05);const d=exportMap(),ta=$('#map-json-area');if(ta)ta.value=JSON.stringify(d,null,2)});
 $('#map-export-download')?.addEventListener('click',()=>{sfx.ui(700,.05);const d=exportMap(),bl=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=`cannon-battle-map-${Date.now()}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(u),1000)});
 $('#map-import-json')?.addEventListener('click',()=>{const ta=$('#map-json-area');if(!ta||!ta.value.trim())return;try{importMap(JSON.parse(ta.value));sfx.ui(900,.06)}catch(e){sfx.ui(200,.1);console.error('Map import failed:',e);alert('Map import failed — check JSON syntax.')}});
@@ -1194,5 +1341,7 @@ applyPaletteToDOM();
 dom.crosshair.style.display='none';dom.hint.style.display='none';dom.bottombar.style.display='none';dom.topbar.style.display='none';if(dom.radar)dom.radar.style.display='none';if(dom.baseTimer)dom.baseTimer.style.display='none';
 scene.background=new C3(PALETTES[CFG.palette].sky);scene.fog=new T.FogExp2(PALETTES[CFG.palette].sky,CFG.fog);
 generateBattlefield();
+// All names are now defined — expose live references to the popout window.
+Object.assign(window,{CFG,CFG_DEFAULTS,PANEL,PALETTES,SAMPLE_FILES,FMTS,FI,FMT,F1,F2,F3,SMP_KIND,sfx,applyVisuals,applyHpAlpha,applyPaletteToDOM,generateBattlefield,resetAllConfig,onResize,getMapEditor:()=>MapEditor,exportMap,importMap,startMatch,togglePauseFromPopout:()=>{const b=$('#btn-pause');if(b)b.click()},exportPresetZip,importPresetZip,refreshMainPanelFromCfg,KODKOD_VERSION,PROPS_CATALOG,spawnProp,getTerrain:()=>TERRAIN,getLibraryItems,getThumb,OBJ_LIBRARY,importObjFile});
 requestAnimationFrame(frame);
 </script></body></html>
