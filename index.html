@@ -83,16 +83,8 @@ body.panel-open #hamburger span:nth-child(3){transform:translateY(-6px) rotate(-
 .boot-start-big:hover{background:rgba(255,255,255,.06);box-shadow:0 0 0 1px var(--accent),0 4px 22px rgba(0,0,0,.4)}
 .boot-start-big .name{font-size:22px;color:var(--accent);font-weight:700;letter-spacing:.35em;line-height:1}
 #menu-foot{margin-top:18px;font-size:9px;color:var(--ink-dim);letter-spacing:.3em;display:flex;justify-content:space-between}
-#panel{position:fixed;top:0;right:0;bottom:0;width:380px;background:var(--bg-1);border-left:1px solid var(--line);transform:translateX(100%);transition:transform .35s cubic-bezier(.65,0,.35,1);z-index:55;display:flex;flex-direction:column;box-shadow:-20px 0 60px rgba(0,0,0,.6)}
-body.panel-open #panel{transform:translateX(0)}
-#panel-head{padding:22px 24px 18px;border-bottom:1px solid var(--line-dim);display:flex;align-items:center;justify-content:space-between}
-#panel-head .ttl{font-size:12px;color:var(--ink);letter-spacing:.25em;font-weight:600}
-#panel-head .sub{font-size:9px;color:var(--ink-dim);letter-spacing:.3em;margin-top:4px}
-#panel-tabs{display:flex;border-bottom:1px solid var(--line-dim);background:var(--bg-2)}
-.tab{flex:1;padding:12px 8px;text-align:center;font-size:10px;color:var(--ink-dim);cursor:pointer;border-right:1px solid var(--line-dim);letter-spacing:.18em;transition:all .15s}
-.tab:last-child{border-right:0}
-.tab:hover{color:var(--ink)}
-.tab.active{color:var(--accent);background:var(--bg-1);box-shadow:inset 0 -2px 0 var(--accent)}
+#btn-dev-open{position:fixed;top:18px;right:18px;z-index:60;padding:10px 16px;background:rgba(20,24,28,.8);border:1px solid var(--line);color:var(--ink);font-family:inherit;font-size:10px;letter-spacing:.22em;cursor:pointer;transition:all .15s;backdrop-filter:blur(6px)}
+#btn-dev-open:hover{background:var(--accent);color:var(--bg-0);border-color:var(--accent)}
 #panel-body{flex:1;overflow-y:auto;padding:0}
 #panel-body::-webkit-scrollbar{width:6px}
 #panel-body::-webkit-scrollbar-track{background:var(--bg-2)}
@@ -121,6 +113,11 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;background:var(--acce
 .swatch{aspect-ratio:1;border:1px solid var(--line-dim);cursor:pointer;position:relative}
 .swatch.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--accent)}
 .swatch.on::after{content:'';position:absolute;inset:0;border:1px dashed var(--accent)}
+.color-pick{display:flex;flex-direction:column;align-items:center;gap:2px}
+.color-pick label{font-size:8px;color:var(--ink-dim);letter-spacing:.15em}
+.color-input{width:100%;height:24px;border:1px solid var(--line-dim);background:transparent;cursor:pointer;padding:0}
+.color-input::-webkit-color-swatch-wrapper{padding:1px}
+.color-input::-webkit-color-swatch{border:none}
 .btn-row{display:flex;gap:8px}
 .btn{flex:1;padding:11px 8px;background:transparent;border:1px solid var(--line);color:var(--ink);cursor:pointer;font-size:10px;letter-spacing:.18em;transition:all .15s}
 .btn:hover{background:var(--accent);color:var(--bg-0);border-color:var(--accent)}
@@ -194,18 +191,8 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;background:var(--acce
 <div id=menu-foot><span>EDITION // 0.0.1</span><span>OPEN MENU //  ≡  TOP-RIGHT</span><span>TIMESTAMP // <span id=boot-ts></span></span></div>
 </div>
 </div>
-<div id=panel>
-<div id=panel-head><div><div class=ttl>SYSTEM PARAMETERS</div><div class=sub>RUNTIME CONTROL</div></div><button class=btn id=btn-popout style="flex:0 0 auto;padding:8px 12px;font-size:9px">↗ POP OUT</button></div>
-<div id=panel-tabs><div class="tab active" data-tab=game>GAME</div><div class=tab data-tab=physics>PHYS</div><div class=tab data-tab=style>STYLE</div><div class=tab data-tab=audio>SFX</div><div class=tab data-tab=map>MAP</div></div>
-<div id=panel-body>
-<div class="tab-pane active" data-pane=game id=pane-game></div>
-<div class=tab-pane data-pane=physics id=pane-physics></div>
-<div class=tab-pane data-pane=style id=pane-style></div>
-<div class=tab-pane data-pane=audio id=pane-audio></div>
-<div class=tab-pane data-pane=map id=pane-map></div>
-</div>
-<div id=panel-foot><span>CFG SYNCED // LIVE</span><span>BUILD // 0.0.1</span></div>
-</div>
+<button id=btn-dev-open title="Open Dev Panel">DEV PANEL ↗</button>
+<div id=hidden-buttons style="display:none"><button id=btn-popout></button><button id=btn-restart></button><button id=btn-pause></button><button id=btn-regen></button><button id=btn-quit></button><button id=btn-reset-all></button></div>
 <div id=message><div id=msg-main>READY</div><div class=sub id=msg-sub>ENGAGE</div></div>
 <div id=gameover-modal><div id=gameover-card>
 <div id=gameover-title>DESTROYED</div>
@@ -233,26 +220,21 @@ const wireMat=k=>lmat(0xc8c0a8,{transparent:true,opacity:CFG.wire*k});
 const edge=(m,k)=>{m.add(new T.LineSegments(new T.EdgesGeometry(m.geometry),wireMat(k==null?1:k)));return m};
 const lerp=(a,b,t)=>a+(b-a)*t;
 const smooth=t=>t*t*(3-2*t);
-// MG damage falloff: very strong at point-blank, drops fast, long tail. Never zero (floor).
-// mult(d) = max(floor, peak / (1 + (d/k)^2))
 function mgFalloff(d){const k=CFG.mgFalloffK||2.3,peak=CFG.mgFalloffPeak||40,floor=CFG.mgFalloffFloor??.02;return Math.max(floor,peak/(1+(d/k)*(d/k)))}
-// ---- closed-edge icosahedron rock geometry: 12 indexed vertices, jittered ONCE each ----
-// (avoids the broken-edge artifact of non-indexed IcosahedronGeometry where each face has its own copies)
 const ICO_VERTS=(()=>{const p=(1+Math.sqrt(5))/2,v=[[-1,p,0],[1,p,0],[-1,-p,0],[1,-p,0],[0,-1,p],[0,1,p],[0,-1,-p],[0,1,-p],[p,0,-1],[p,0,1],[-p,0,-1],[-p,0,1]];const n=1/Math.sqrt(1+p*p);return v.map(([x,y,z])=>[x*n,y*n,z*n])})();
 const ICO_FACES=[0,11,5, 0,5,1, 0,1,7, 0,7,10, 0,10,11, 1,5,9, 5,11,4, 11,10,2, 10,7,6, 7,1,8, 3,9,4, 3,4,2, 3,2,6, 3,6,8, 3,8,9, 4,9,5, 2,4,11, 6,2,10, 8,6,7, 9,8,1];
 function rockGeo(radius,jitterAmt,rngFn){const j=jitterAmt,verts=new Float32Array(12*3);for(let i=0;i<12;i++){const[x,y,z]=ICO_VERTS[i];const jx=(rngFn()-.5)*j*2,jy=(rngFn()-.5)*j*2,jz=(rngFn()-.5)*j*2;verts[i*3]=x*radius+jx;verts[i*3+1]=y*radius+jy;verts[i*3+2]=z*radius+jz}const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(verts,3));g.setIndex(ICO_FACES);g.computeVertexNormals();return g}
 // ===== CONFIG =====
-const CFG={startRound:1,roundBreak:3,baseRecover:180,aiSkill:60,aiFire:3.5,speed:12,rspeed:6,accel:8,turn:1.8,hp:100,bodyScale:1,barrelScale:.8,wheelSize:.5,gravity:14,power:55,minPower:12,charge:2.4,minCharge:10,fireRate:1,drag:.02,mass:1,blast:5,dmg:35,mgRange:15,mgRate:3,mgDmg:.28,mgEnemyMult:2,tracerSpeed:220,tracerLen:1.6,tracerThick:.018,tracerGlow:1,hmgRate:12,hmgDmg:.35,hmgRange:60,heliEnabled:true,heliInterval:25,heliHp:18,heliDmg:.2,heliDropChance:1,heliRocketInterval:4.5,heliRocketDmg:18,heliRocketSpeed:38,heliRocketBlast:4.5,treeHp:2,rockHp:4,baseHp:200,baseRegen:6,fieldSize:272,rough:.55,trees:320,rocks:60,rivers:1,seed:1024,palette:0,wire:.55,fill:.92,grid:.35,fog:0,bright:150,contrast:110,zoom:28,camRot:45,showCross:true,showList:true,showHint:true,hpAlpha:1,volMaster:70,volFire:80,volBoom:85,volCharge:50,volUi:40,volAmb:25,sfxProfile:'punchy',mapBrush:'tree',brushVariety:5,mgFalloffPeak:40,mgFalloffK:2.3,mgFalloffFloor:.02,smpCannon:'05_cannon',smpMg:'synth',smpLoad:'01_idle',smpBoom:'synth',smpImpact:'11_hull_hit',smpIdle:'none',smpDrive:'none',smpUi:'synth'};
+const CFG={startRound:1,roundBreak:3,baseRecover:180,aiSkill:60,aiFire:3.5,speed:12,rspeed:6,accel:8,turn:1.8,hp:100,bodyScale:1,barrelScale:.8,wheelSize:.5,gravity:14,power:55,minPower:12,charge:2.4,minCharge:10,fireRate:1,drag:.02,mass:1,blast:5,dmg:35,mgRange:15,mgRate:3,mgDmg:.28,mgEnemyMult:2,tracerSpeed:220,tracerLen:1.6,tracerThick:.018,tracerGlow:1,hmgRate:12,hmgDmg:.35,hmgRange:60,heliEnabled:true,heliInterval:25,heliHp:18,heliDmg:.2,heliDropChance:1,heliRocketInterval:4.5,heliRocketDmg:18,heliRocketSpeed:38,heliRocketBlast:4.5,treeHp:2,rockHp:4,baseHp:200,baseRegen:6,fieldSize:272,rough:.55,trees:320,rocks:60,rivers:1,seed:1024,palette:0,wire:.55,fill:.92,grid:.35,fog:0,bright:150,contrast:110,zoom:28,camRot:45,showCross:true,showList:true,showHint:true,hpAlpha:1,volMaster:70,volFire:80,volBoom:85,volCharge:50,volUi:40,volAmb:25,mapBrush:'tree',brushVariety:5,camMode:0,camOrbitSens:1,camPanSens:1,camInvertOrbitX:false,camInvertOrbitY:false,camInvertPanX:false,camInvertPanY:false,mgFalloffPeak:40,mgFalloffK:2.3,mgFalloffFloor:.02,smpCannon:'05_cannon',smpMg:'synth',smpLoad:'01_idle',smpBoom:'synth',smpImpact:'11_hull_hit',smpIdle:'none',smpDrive:'none',smpUi:'synth'};
 const CFG_DEFAULTS=JSON.parse(JSON.stringify(CFG));
 const PALETTES=[
-{name:'DUSK',bg:'#1c2024',ground:'#5a5a48',accent:'#b8794a',line:'#a39c83',p1:'#5b7280',p2:'#a3614a',p3:'#8a6e44',p4:'#5e7560',sky:'#2b3138'}];
+{name:'DUSK',bg:'#1c2024',ground:'#5a5a48',accent:'#b8794a',line:'#a39c83',p1:'#5b7280',p2:'#a3614a',p3:'#8a6e44',p4:'#5e7560',sky:'#2b3138'},
+{name:'MONOTONE',bg:'#1a1a1a',ground:'#3a3a3a',accent:'#c8c8c8',line:'#888888',p1:'#9a9a9a',p2:'#7a7a7a',p3:'#5a5a5a',p4:'#444444',sky:'#222222'}];
 function applyPaletteToDOM(){const p=PALETTES[CFG.palette],r=document.documentElement;r.style.setProperty('--bg-0',p.bg);r.style.setProperty('--line',p.line);r.style.setProperty('--accent',p.accent);r.style.setProperty('--p1',p.p1);r.style.setProperty('--p2',p.p2)}
 // ===== DOM =====
 const dom={menu:$('#menu'),panel:$('#panel'),hamburger:$('#hamburger'),hud:$('#hud'),crosshair:$('#crosshair'),chargeFill:$('#charge-fill'),hpVal:$('#hp-val'),velVal:$('#vel-val'),modeTag:$('#mode-tag'),roundVal:$('#round-val'),roundHostiles:$('#round-hostiles'),runTime:$('#run-time'),baseStatus:$('#base-status'),message:$('#message'),msgMain:$('#msg-main'),msgSub:$('#msg-sub'),killfeed:$('#killfeed'),radar:$('#radar'),radarCanvas:$('#radar-canvas'),baseTimer:$('#base-timer'),baseTimerVal:$('#base-timer-val'),bottombar:$('#bottombar'),topbar:$('#topbar'),hint:$('#controls-hint')};
 document.getElementById('boot-ts').textContent=new Date().toISOString().replace('T',' ').slice(0,19);
 // ===== SFX =====
-// Sample manifest — files loaded from ./sfx/ on first SFX init.
-// Keys are also the dropdown values stored in CFG.smp* selectors.
 const SAMPLE_FILES={'01_idle':'01_tank_engine_idle.mp3','02_rev':'02_tank_engine_rev.mp3','03_tracks':'03_tank_tracks_moving.mp3','04_squeak':'04_tank_tracks_squeak.mp3','05_cannon':'05_tank_cannon_fire.mp3','06_cooldown':'06_tank_cannon_cooldown.mp3','07_reload':'07_tank_cannon_reload.mp3','08_impact':'08_tank_shell_impact.mp3','09_mg':'09_tank_machine_gun.mp3','10_turret':'10_tank_turret_rotate.mp3','11_hull_hit':'11_tank_hull_hit.mp3','12_pierce':'12_tank_armor_pierce.mp3','13_destroyed':'13_tank_destroyed.mp3','14_start':'14_tank_engine_start.mp3','15_hatch':'15_tank_hatch_open.mp3','16_smoke':'16_tank_smoke_launcher.mp3','17_tread':'17_tank_tread_broken.mp3','18_distant':'18_tank_distant_fire.mp3','19_shrapnel':'19_tank_shrapnel_rain.mp3','20_radio':'20_tank_radio_static.mp3'};
 class SFX{
 constructor(){this.ctx=null;this.samples={};this.loopNodes={};this.loadStatus={loaded:0,total:Object.keys(SAMPLE_FILES).length,inProgress:false,failed:[]};this._warned={}}
@@ -267,10 +249,9 @@ if(this.loadStatus.loaded===0&&this.loadStatus.total>0&&location.protocol==='fil
 if(typeof updateSfxStatus==='function')updateSfxStatus()}
 noiseBuffer(d=1){const sr=this.ctx.sampleRate,b=this.ctx.createBuffer(1,sr*d,sr),a=b.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=Math.random()*2-1;return b}
 playSample(key,bus,gain=1,rate=1){const buf=this.samples[key];if(!buf||!this.ctx){if(!this._warned[key]){console.warn('[SFX] Sample not loaded:',key,'(falling back to synth)');this._warned[key]=true}return null}const src=this.ctx.createBufferSource();src.buffer=buf;src.playbackRate.value=rate;const g=this.ctx.createGain();g.gain.value=gain;src.connect(g).connect(bus);src.start();return{src,g}}
-// ---- synth voices (original sounds, used when CFG.smp* === 'synth') ----
-_synthFire(){const t=this.ctx.currentTime,p=CFG.sfxProfile,lo=p==='boomy'?55:p==='arcade'?120:80,d=p==='boomy'?.7:p==='arcade'?.25:.45;
+_synthFire(){const t=this.ctx.currentTime,lo=80,d=.45;
 const o=this.ctx.createOscillator();o.type='sine';const og=this.ctx.createGain();o.frequency.setValueAtTime(lo*2,t);o.frequency.exponentialRampToValueAtTime(lo*.4,t+d);og.gain.setValueAtTime(.0001,t);og.gain.exponentialRampToValueAtTime(1.2,t+.01);og.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(og).connect(this.busFire);o.start(t);o.stop(t+d+.05);
-const s=this.ctx.createBufferSource();s.buffer=this.noiseBuffer(.18);const hp=this.ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=p==='arcade'?1500:700;const ng=this.ctx.createGain();ng.gain.setValueAtTime(.001,t);ng.gain.exponentialRampToValueAtTime(.8,t+.005);ng.gain.exponentialRampToValueAtTime(.001,t+.18);s.connect(hp).connect(ng).connect(this.busFire);s.start(t);s.stop(t+.2)}
+const s=this.ctx.createBufferSource();s.buffer=this.noiseBuffer(.18);const hp=this.ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=700;const ng=this.ctx.createGain();ng.gain.setValueAtTime(.001,t);ng.gain.exponentialRampToValueAtTime(.8,t+.005);ng.gain.exponentialRampToValueAtTime(.001,t+.18);s.connect(hp).connect(ng).connect(this.busFire);s.start(t);s.stop(t+.2)}
 _synthMg(a=1){const t=this.ctx.currentTime;
 const o=this.ctx.createOscillator();o.type='square';const og=this.ctx.createGain();o.frequency.setValueAtTime(220,t);o.frequency.exponentialRampToValueAtTime(90,t+.05);og.gain.setValueAtTime(.0001,t);og.gain.exponentialRampToValueAtTime(.45*a,t+.003);og.gain.exponentialRampToValueAtTime(.0001,t+.06);o.connect(og).connect(this.busFire);o.start(t);o.stop(t+.07);
 const s=this.ctx.createBufferSource();s.buffer=this.noiseBuffer(.05);const hp=this.ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=2500;const ng=this.ctx.createGain();ng.gain.setValueAtTime(.0001,t);ng.gain.exponentialRampToValueAtTime(.35*a,t+.002);ng.gain.exponentialRampToValueAtTime(.0001,t+.05);s.connect(hp).connect(ng).connect(this.busFire);s.start(t);s.stop(t+.06)}
@@ -279,7 +260,6 @@ const lo=this.ctx.createOscillator();lo.type='sine';const lg=this.ctx.createGain
 const s=this.ctx.createBufferSource();s.buffer=this.noiseBuffer(d);const bp=this.ctx.createBiquadFilter();bp.type='lowpass';bp.frequency.setValueAtTime(2000,t);bp.frequency.exponentialRampToValueAtTime(180,t+d);const ng=this.ctx.createGain();ng.gain.setValueAtTime(.001,t);ng.gain.exponentialRampToValueAtTime(1,t+.01);ng.gain.exponentialRampToValueAtTime(.001,t+d);s.connect(bp).connect(ng).connect(this.busBoom);s.start(t);s.stop(t+d+.1)}
 _synthUi(f=600,d=.08){const t=this.ctx.currentTime,o=this.ctx.createOscillator();o.type='square';o.frequency.value=f;const g=this.ctx.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.35,t+.005);g.gain.exponentialRampToValueAtTime(.001,t+d);const lp=this.ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2400;o.connect(lp).connect(g).connect(this.busUi);o.start(t);o.stop(t+d+.05)}
 startSynthAmbient(){if(this.synthAmb)return;const o=this.ctx.createOscillator();o.type='sine';o.frequency.value=55;const o2=this.ctx.createOscillator();o2.type='sine';o2.frequency.value=82.5;const g=this.ctx.createGain();g.gain.value=0;const lp=this.ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=400;o.connect(g);o2.connect(g);g.connect(lp).connect(this.busAmb);o.start();o2.start();this.synthAmb={o,o2,g}}
-// ---- event-routed playback (sample → synth fallback when sample not loaded) ----
 fire(){this.ensure();const s=CFG.smpCannon;if(s==='none')return;if(s==='synth'||!this.samples[s]){if(s!=='synth')this._warnFallback(s);return this._synthFire()}this.playSample(s,this.busFire,.9)}
 mg(dist=0){this.ensure();const a=Math.max(.18,1-dist/40);const s=CFG.smpMg;if(s==='none')return;if(s==='synth'||!this.samples[s]){if(s!=='synth')this._warnFallback(s);return this._synthMg(a)}this.playSample(s,this.busFire,.5*a,1.4+Math.random()*.3)}
 explosion(scale=1){this.ensure();const s=CFG.smpBoom;if(s==='none')return;if(s==='synth'||!this.samples[s]){if(s!=='synth')this._warnFallback(s);return this._synthExplosion(scale)}this.playSample(s,this.busBoom,Math.min(1.2,.7*scale+.4))}
@@ -288,13 +268,10 @@ loadShell(){this.ensure();const s=CFG.smpLoad;if(s==='none'||s==='synth')return;
 ui(f=600,d=.08){this.ensure();const s=CFG.smpUi;if(s==='none')return;if(s==='synth'||!this.samples[s]){if(s!=='synth')this._warnFallback(s);return this._synthUi(f,d)}this.playSample(s,this.busUi,.5,1+(f-600)/2000)}
 charge(){}stopCharge(){}
 _warnFallback(key){if(this._warned[key])return;this._warned[key]=true;console.warn('[SFX] Sample',key,'requested but not loaded — using synth fallback. Check Network tab / open the SFX panel for status.')}
-// ---- preview a specific selection through its intended bus (for dropdown change feedback) ----
 preview(key,kind){this.ensure();if(!this.ctx)return;if(key==='none')return;if(kind==='boom'||kind==='impact'){if(key==='synth')return this._synthExplosion(kind==='impact'?.5:1);if(this.samples[key])return this.playSample(key,this.busBoom,.9);this._warnFallback(key);return this._synthExplosion(.7)}
 if(kind==='ui'){if(key==='synth')return this._synthUi();if(this.samples[key])return this.playSample(key,this.busUi,.6);this._warnFallback(key);return this._synthUi()}
-// default = fire bus (cannon/mg/load/idle/drive previews)
 if(key==='synth'){if(kind==='mg')return this._synthMg(1);return this._synthFire()}
 if(this.samples[key])return this.playSample(key,this.busFire,.7);this._warnFallback(key);if(kind==='mg')return this._synthMg(1);return this._synthFire()}
-// ---- engine: looped, restartable when dropdown changes ----
 applyEngine(){if(!this.ctx)return;
 const setLoop=(slot,key,gain)=>{const cur=this.loopNodes[slot];if(cur){try{cur.src.stop()}catch(e){}cur.src.disconnect();cur.g.disconnect();delete this.loopNodes[slot]}if(!key||key==='none'||key==='synth'||!this.samples[key])return;const src=this.ctx.createBufferSource();src.buffer=this.samples[key];src.loop=true;const g=this.ctx.createGain();g.gain.value=gain;src.connect(g).connect(this.busAmb);src.start();this.loopNodes[slot]={src,g}};
 setLoop('idle',CFG.smpIdle,.35);
@@ -381,7 +358,7 @@ const pR=TERRAIN.size*.46,dC=Math.sqrt(this.group.position.x**2+this.group.posit
 const tF=1.8*CFG.bodyScale;
 if(TERRAIN.trees?.length){for(const tr of TERRAIN.trees){if(tr.fallen)continue;const dx=this.group.position.x-tr.x,dz=this.group.position.z-tr.z,r=tF+tr.r;if(dx*dx+dz*dz<r*r){tr.fallen=true;tr.fallTime=0;const l=Math.sqrt(dx*dx+dz*dz)||1;tr.fallDirX=-dx/l;tr.fallDirZ=-dz/l;this.vel*=.92}}}
 if(TERRAIN.rocks?.length){if(this._rockCD===undefined)this._rockCD=0;this._rockCD=Math.max(0,this._rockCD-dt);for(const rk of TERRAIN.rocks){const dx=this.group.position.x-rk.x,dz=this.group.position.z-rk.z,mD=tF+rk.r*.85,dSq=dx*dx+dz*dz;if(dSq<mD*mD&&dSq>.0001){const d=Math.sqrt(dSq),ov=mD-d,nx=dx/d,nz=dz/d;this.group.position.x+=nx*ov;this.group.position.z+=nz*ov;const vx=Math.sin(this.yaw)*this.vel,vz=Math.cos(this.yaw)*this.vel,cl=-(vx*nx+vz*nz);if(this._rockCD<=0&&cl>1.5){const dmg=Math.min(30,cl*1.6);this.damage(dmg,'ROCK');this._rockCD=.5;spawnMuzzleFlash(v3(rk.x,rk.y+rk.r+.4,rk.z))}if(cl>0)this.vel*=.15}}}
-if(TERRAIN.props?.length){if(this._propCD===undefined)this._propCD=0;this._propCD=Math.max(0,this._propCD-dt);for(const pr of TERRAIN.props){if(!pr.solid||pr.passable)continue;const dx=this.group.position.x-pr.x,dz=this.group.position.z-pr.z,mD=tF+pr.r*.85,dSq=dx*dx+dz*dz;if(dSq<mD*mD&&dSq>.0001){const d=Math.sqrt(dSq),ov=mD-d,nx=dx/d,nz=dz/d;this.group.position.x+=nx*ov;this.group.position.z+=nz*ov;const vx=Math.sin(this.yaw)*this.vel,vz=Math.cos(this.yaw)*this.vel,cl=-(vx*nx+vz*nz);if(this._propCD<=0&&cl>1.5){const dmg=Math.min(28,cl*1.4);this.damage(dmg,pr.kind.toUpperCase());if(pr.hp!=null)pr.hp-=Math.min(5,cl*.8);this._propCD=.4;spawnMuzzleFlash(v3(pr.x,pr.y+pr.h*.6,pr.z))}if(cl>0)this.vel*=.18}}}
+if(TERRAIN.props?.length){if(this._propCD===undefined)this._propCD=0;this._propCD=Math.max(0,this._propCD-dt);for(const pr of TERRAIN.props){if(!pr.solid)continue;const dx=this.group.position.x-pr.x,dz=this.group.position.z-pr.z,mD=tF+pr.r*.85,dSq=dx*dx+dz*dz;if(dSq<mD*mD&&dSq>.0001){const d=Math.sqrt(dSq),ov=mD-d,nx=dx/d,nz=dz/d;this.group.position.x+=nx*ov;this.group.position.z+=nz*ov;const vx=Math.sin(this.yaw)*this.vel,vz=Math.cos(this.yaw)*this.vel,cl=-(vx*nx+vz*nz);if(this._propCD<=0&&cl>1.5){const dmg=Math.min(28,cl*1.4);this.damage(dmg,pr.kind.toUpperCase());if(pr.hp!=null)pr.hp-=Math.min(5,cl*.8);this._propCD=.4;spawnMuzzleFlash(v3(pr.x,pr.y+pr.h*.6,pr.z))}if(cl>0)this.vel*=.18}}}
 const h=terrainHeightAt(this.group.position.x,this.group.position.z);this.group.position.y=h;this.group.rotation.y=this.yaw;
 const s=1.5,hF=terrainHeightAt(this.group.position.x+Math.sin(this.yaw)*s,this.group.position.z+Math.cos(this.yaw)*s),hB=terrainHeightAt(this.group.position.x-Math.sin(this.yaw)*s,this.group.position.z-Math.cos(this.yaw)*s),hL=terrainHeightAt(this.group.position.x-Math.cos(this.yaw)*s,this.group.position.z+Math.sin(this.yaw)*s),hR=terrainHeightAt(this.group.position.x+Math.cos(this.yaw)*s,this.group.position.z-Math.sin(this.yaw)*s);
 this.group.rotation.x=Math.atan2(hF-hB,s*2)*.6;this.group.rotation.z=Math.atan2(hL-hR,s*2)*.6}}
@@ -530,7 +507,7 @@ for(const t of ENTITIES.tanks){if(t.dead||t===p.owner)continue;const dx=px-t.gro
 for(const o of TERRAIN.obstacles){const dx=px-o.x,dz=pz-o.z,dy=py-(o.y+o.h/2);if(Math.abs(dx)<o.w/2+.2&&Math.abs(dz)<o.d/2+.2&&Math.abs(dy)<o.h/2+.2){hit=true;break}}
 if(!hit){for(const t of TERRAIN.trees){if(t.fallen)continue;const dx=px-t.x,dz=pz-t.z,dy=py-t.y;if(dx*dx+dz*dz<(t.r+.25)*(t.r+.25)&&dy>-.2&&dy<t.h+.2){hit=true;break}}}
 if(!hit){for(const r of TERRAIN.rocks){const dx=px-r.x,dz=pz-r.z,dy=py-(r.y+r.r),rr=r.r+.2;if(dx*dx+dz*dz+dy*dy<rr*rr){hit=true;break}}}
-if(!hit){for(const pr of TERRAIN.props){if(!pr.solid||pr.passable)continue;const dx=px-pr.x,dz=pz-pr.z,dh=py-pr.y;if(dx*dx+dz*dz<(pr.r+.15)*(pr.r+.15)&&dh>-.3&&dh<pr.h+.3){hit=true;break}}}
+if(!hit){for(const pr of TERRAIN.props){if(!pr.solid)continue;const dx=px-pr.x,dz=pz-pr.z,dh=py-pr.y;if(dx*dx+dz*dz<(pr.r+.15)*(pr.r+.15)&&dh>-.3&&dh<pr.h+.3){hit=true;break}}}
 if(!hit&&ENTITIES.basements){for(const b of ENTITIES.basements){if(b.dead)continue;const dx=px-b.x,dz=pz-b.z,dy=py-b.y;if(Math.abs(dx)<b.r+.1&&Math.abs(dz)<b.r+.1&&dy<.5&&dy>-.3){hit=true;break}if(dy>0&&dy<5&&Math.abs(dx)<b.r&&Math.abs(dz)<b.r){const cx=Math.abs(dx)-(b.r-.6),cz=Math.abs(dz)-(b.r-.6);if(cx*cx+cz*cz<.36){hit=true;break}}}}
 if(hit||p.life<=0){const ex=p.mesh.position.clone();ex.y=Math.max(ex.y,gY);
 if(p.dud){const puff=mesh(new T.OctahedronGeometry(.4,0),bmat(0x8a7a64,{transparent:true,opacity:.7}));puff.position.copy(ex);scene.add(puff);ENTITIES.effects.push({mesh:puff,type:'flash',life:.25,max:.25});sfx.ui(110,.05);scene.remove(p.mesh);scene.remove(p.trail);p.mesh.geometry.dispose();ENTITIES.projectiles.splice(i,1);continue}
@@ -575,8 +552,6 @@ function isInRiver(x,z,margin=.6){for(const r of riverPaths)for(const s of r.seg
 TERRAIN.riverMask=isInRiver;
 const seg=TERRAIN.seg,verts=(seg+1)*(seg+1);TERRAIN.heights=new Float32Array(verts);
 for(let z=0;z<=seg;z++)for(let x=0;x<=seg;x++){const wx=(x/seg-.5)*size,wz=(z/seg-.5)*size,nx=wx*.04,nz=wz*.04;let h=fbm(nx,nz,CFG.seed)*2-1;h+=fbm(nx*2.7,nz*2.7,CFG.seed+1)*.5;const d=Math.max(Math.abs(wx),Math.abs(wz))/(size/2);if(d>.85){const t=Math.min(1,(d-.85)/.15),ts=smooth(t);h=lerp(h,0,ts)-ts*.4}h*=8*CFG.rough;const ri=riverInfluence(wx,wz);if(ri){const inner=ri.width*.45,outer=ri.width*1.1;if(ri.dist<inner)h=-ri.depth;else if(ri.dist<outer){const t=(ri.dist-inner)/(outer-inner),ts=smooth(t);h=lerp(-ri.depth,h,ts)}}TERRAIN.heights[z*(seg+1)+x]=h}
-// ---- BASE FLATTEN ZONE: keep the player's basement pad sitting on truly flat ground ----
-// Inside an inner square (r=5) heights are forced to 0; outside an outer square (r=8) they're unchanged; between them they lerp smoothly so the surrounding terrain doesn't pop.
 {const INNER=5,OUTER=8;for(let z=0;z<=seg;z++){const wz=(z/seg-.5)*size;const az=Math.abs(wz);if(az>OUTER)continue;for(let x=0;x<=seg;x++){const wx=(x/seg-.5)*size;const ax=Math.abs(wx);if(ax>OUTER)continue;const m=Math.max(ax,az);let k=1;if(m>INNER){const t=(m-INNER)/(OUTER-INNER);k=1-smooth(t)}const i=z*(seg+1)+x;TERRAIN.heights[i]=lerp(TERRAIN.heights[i],0,k)}}}
 const geo=new T.PlaneGeometry(size,size,seg,seg);geo.rotateX(-Math.PI/2);const pos=geo.attributes.position;for(let i=0;i<verts;i++)pos.setY(i,TERRAIN.heights[i]);geo.computeVertexNormals();
 const gc=new C3(pal.ground);const gm=mat(gc,{roughness:.95,transparent:true,opacity:CFG.fill});const gmesh=mesh(geo,gm);scene.add(gmesh);TERRAIN.mesh=gmesh;
@@ -592,7 +567,6 @@ const wM=mat(wc,{emissive:wc.clone().multiplyScalar(.15),roughness:.4,metalness:
 const ePts=[];for(let i=0;i<pts.length-1;i++){ePts.push(positions[i*6+0],positions[i*6+1]+.02,positions[i*6+2]);ePts.push(positions[(i+1)*6+0],positions[(i+1)*6+1]+.02,positions[(i+1)*6+2]);ePts.push(positions[i*6+3],positions[i*6+4]+.02,positions[i*6+5]);ePts.push(positions[(i+1)*6+3],positions[(i+1)*6+4]+.02,positions[(i+1)*6+5])}
 const eG=new T.BufferGeometry();eG.setAttribute('position',new T.Float32BufferAttribute(ePts,3));const eM=lmat(wlc,{transparent:true,opacity:CFG.wire});const eL=new T.LineSegments(eG,eM);scene.add(eL);
 TERRAIN.rivers.push({mesh:wMesh,edge:eL,segments:r.segments,width:r.width})}
-// trees
 const tCol=new C3(pal.ground).multiplyScalar(.55).lerp(new C3('#5a3a22'),.4),fCol=new C3(pal.ground).lerp(new C3('#4a6a3a'),.55),tLC=new C3(pal.line);
 TERRAIN.palette=TERRAIN.palette||{};TERRAIN.palette.trunkCol=tCol;TERRAIN.palette.foliageCol=fCol;TERRAIN.palette.treeLineCol=tLC;
 let tPlaced=0;const tMaxR=size*.48,FDM=5,fCount=4+Math.floor(rng.next()*3),forests=[];
@@ -609,7 +583,6 @@ const coneEdge=new T.LineSegments(new T.EdgesGeometry(cone.geometry),lmat(tLC,{t
 g.position.set(x,gy,z);scene.add(g);
 TERRAIN.trees.push({x,z,y:gy,r:Math.max(trunkR*1.3,foliageR*.55),h:totalH,mesh:g,hp:CFG.treeHp});tPlaced++};
 outer:for(let cz=-tMaxR;cz<=tMaxR;cz+=cellSize){for(let cx=-tMaxR;cx<=tMaxR;cx+=cellSize){if(tPlaced>=CFG.trees)break outer;const inF=isInForest(cx,cz),pl=inF?FDM:1;for(let n=0;n<pl;n++){if(tPlaced>=CFG.trees)break outer;placeTreeAt(cx+rng.range(-jitter,jitter),cz+rng.range(-jitter,jitter))}}}
-// rocks
 const rkCol=new C3(pal.ground).multiplyScalar(.85).lerp(new C3('#888a8c'),.35),rkLC=new C3(pal.line);TERRAIN.palette.rockCol=rkCol;TERRAIN.palette.rockLineCol=rkLC;
 const rMaxR=size*.48;
 const placeRockAt=(x,z,rad)=>{if(Math.max(Math.abs(x),Math.abs(z))>rMaxR)return false;if(Math.sqrt(x*x+z*z)<9)return false;if(isInRiver(x,z,.35))return false;for(const o of TERRAIN.obstacles)if(Math.abs(x-o.x)<o.w/2+.6&&Math.abs(z-o.z)<o.d/2+.6)return false;
@@ -651,7 +624,6 @@ applyVisuals();applyHpAlpha();document.body.classList.remove('panel-open')}
 function spawnRoundHostiles(n){const pal=PALETTES[CFG.palette],rR=TERRAIN.size*.36,count=hostilesForRound(n),colors=[pal.p2,pal.p3,pal.p4],sA=Math.random()*Math.PI*2;
 for(let i=0;i<count;i++){const ang=sA+(i/count)*Math.PI*2,r=rR*(.85+Math.random()*.2),x=Math.cos(ang)*r,z=Math.sin(ang)*r;ENTITIES.tanks.push(new Tank({name:`H${n}-${i+1}`,color:new C3(colors[i%colors.length]),isAI:true,team:'ai',pos:v3(x,0,z)}))}
 roundActive=true;applyHpAlpha();updatePlayerList();updateRoundHud();showMessage(`ROUND ${n}`,`${count} HOSTILE${count>1?'S':''}`,false)}
-// ---- World grows 10% per round; trees/rocks scale by 1.21 (area-proportional) so density stays constant ----
 function growBattlefield(){
 const sliderMaxField=512,sliderMaxTrees=1200,sliderMaxRocks=400;
 const newField=Math.min(sliderMaxField,Math.round((CFG.fieldSize*1.1)/8)*8);
@@ -659,14 +631,11 @@ const newTrees=Math.min(sliderMaxTrees,Math.round(CFG.trees*1.21));
 const newRocks=Math.min(sliderMaxRocks,Math.round(CFG.rocks*1.21));
 if(newField===CFG.fieldSize&&newTrees===CFG.trees&&newRocks===CFG.rocks)return;
 CFG.fieldSize=newField;CFG.trees=newTrees;CFG.rocks=newRocks;
-// sync the panel sliders so the new values are visible if the user opens the panel
 for(const[k,v]of[['fieldSize',newField],['trees',newTrees],['rocks',newRocks]]){const el=$('#cfg-'+k),lb=$('#lbl-'+k);if(el)el.value=v;if(lb)lb.textContent=(FMTS[k]||FI)(v)}
-// drop in-flight ordnance & pickups so they don't strand on stale terrain
 for(const p of ENTITIES.projectiles){scene.remove(p.mesh);scene.remove(p.trail)}ENTITIES.projectiles=[];
 for(const r of(ENTITIES.heliRockets||[])){scene.remove(r.group);scene.remove(r.trail)}ENTITIES.heliRockets=[];
 for(const pk of ENTITIES.pickups)scene.remove(pk.group);ENTITIES.pickups=[];
 generateBattlefield();
-// re-clamp player to inside the (still-growing) field — base is flat at (0,0) so player at origin stays safe
 applyVisuals();applyHpAlpha();addKillFeed(`MAP EXPANDED // ${newField}×${newField}`)}
 function updateRoundHud(){if(!dom.roundVal)return;dom.roundVal.textContent=String(roundNumber);const hostiles=ENTITIES.tanks.filter(t=>t.isAI&&!t.dead).length,total=hostilesForRound(roundNumber);dom.roundHostiles.textContent=roundActive?`${hostiles}/${total}`:`· · · ${total}`;const now=(gameState==='over'?endStartMs:performance.now());dom.runTime.textContent=fmtRunTime(now-runStartMs);
 const pB=ENTITIES.basements.find(b=>b.team==='player');
@@ -755,15 +724,11 @@ const rm=mesh(geo,mat(pal.rockCol,{roughness:.95}));const sk=rad*.35;rm.position
 rm.add(new T.LineSegments(new T.EdgesGeometry(geo),lmat(pal.rockLineCol,{transparent:true,opacity:CFG.wire})));scene.add(rm);
 const rock={x,z,y:gy-sk,r:rad,mesh:rm,hp:CFG.rockHp*Math.max(1,Math.round(rad/1.5))};TERRAIN.rocks.push(rock);return rock}
 // ===== PROPS LIBRARY (new wireframe brush items) =====
-// Each builder returns {group, r, h} where r is footprint radius (for collision/erase in stage 2) and h is total height.
-// Materials use TERRAIN.palette which is set up by generateBattlefield, so spawnProp() before world-gen is a no-op.
 TERRAIN.props=[];
-function _propMaterials(){const p=TERRAIN.palette,line=p?.rockLineCol||new C3(0xa39c83);return{wall:mat(new C3(0x8a8268),{roughness:.9}),wood:mat(new C3(0x5a3f28),{roughness:.95}),dark:mat(new C3(0x2e2a24),{roughness:.95}),metal:mat(new C3(0x4a5258),{roughness:.6,metalness:.3}),roof:mat(new C3(0x7a3e2e),{roughness:.85}),road:mat(new C3(0x3a3530),{roughness:.95}),cow:mat(new C3(0xeeeae0),{roughness:.9}),cowDark:mat(new C3(0x2e2620),{roughness:.9}),water:mat(new C3(0x4a7080),{emissive:new C3(0x1a2830),roughness:.4,metalness:.2}),paint:mat(new C3(0x9c6042),{roughness:.7}),line}}
+function _propMaterials(){const p=TERRAIN.palette,line=p?.rockLineCol||new C3(0xa39c83);return{wall:mat(new C3(0x8a8268),{roughness:.9}),wood:mat(new C3(0x5a3f28),{roughness:.95}),dark:mat(new C3(0x2e2a24),{roughness:.95}),metal:mat(new C3(0x4a5258),{roughness:.6,metalness:.3}),roof:mat(new C3(0x7a3e2e),{roughness:.85}),cow:mat(new C3(0xeeeae0),{roughness:.9}),cowDark:mat(new C3(0x2e2620),{roughness:.9}),water:mat(new C3(0x4a7080),{emissive:new C3(0x1a2830),roughness:.4,metalness:.2}),paint:mat(new C3(0x9c6042),{roughness:.7}),line}}
 function _edge(m,k){const M=_propMaterials();m.add(new T.LineSegments(new T.EdgesGeometry(m.geometry),lmat(M.line,{transparent:true,opacity:CFG.wire*(k==null?1:k)})));return m}
-// ---- Builders ----
 function _bHouse(s=1){const M=_propMaterials(),g=grp();const w=2.8*s,d=2.4*s,h=2*s;const body=mesh(new T.BoxGeometry(w,h,d),M.wall);body.position.y=h/2;g.add(_edge(body));const rh=h*.6;const roofGeo=new T.CylinderGeometry(.01,d*.78,rh,4,1);const roof=mesh(roofGeo,M.roof);roof.rotation.y=Math.PI/4;roof.position.y=h+rh/2;g.add(_edge(roof));const door=mesh(new T.BoxGeometry(.55*s,1.1*s,.05),M.dark);door.position.set(0,.55*s,d/2+.026);g.add(door);for(const sx of[-1,1]){const win=mesh(new T.BoxGeometry(.45*s,.45*s,.05),M.dark);win.position.set(sx*w*.27,h*.65,d/2+.026);g.add(win)}return{group:g,r:Math.max(w,d)*.55,h:h+rh}}
 function _bWatchtower(s=1){const M=_propMaterials(),g=grp();const legH=4*s,legR=.12*s;for(const[sx,sz]of[[-.8,-.8],[.8,-.8],[-.8,.8],[.8,.8]]){const leg=mesh(new T.BoxGeometry(legR*2,legH,legR*2),M.wood);leg.position.set(sx*s,legH/2,sz*s);g.add(_edge(leg,.7))}for(let i=1;i<4;i++){const y=legH*i/4;for(const[a,b]of[[[-.8,-.8],[.8,-.8]],[[.8,-.8],[.8,.8]],[[.8,.8],[-.8,.8]],[[-.8,.8],[-.8,-.8]]]){const dx=(b[0]-a[0])*s,dz=(b[1]-a[1])*s,len=Math.sqrt(dx*dx+dz*dz);const br=mesh(new T.BoxGeometry(len,.06*s,.06*s),M.wood);br.position.set((a[0]+b[0])/2*s,y,(a[1]+b[1])/2*s);br.rotation.y=Math.atan2(dz,dx);g.add(_edge(br,.7))}}const platS=2.2*s,platH=.18*s;const plat=mesh(new T.BoxGeometry(platS,platH,platS),M.wood);plat.position.y=legH+platH/2;g.add(_edge(plat));const railH=.9*s;for(const[sx,sz,rx,rz]of[[0,platS/2,platS,.05],[0,-platS/2,platS,.05],[platS/2,0,.05,platS],[-platS/2,0,.05,platS]]){const rail=mesh(new T.BoxGeometry(rx,railH,rz),M.wood);rail.position.set(sx,legH+platH+railH/2,sz);g.add(_edge(rail,.7))}const roofGeo=new T.ConeGeometry(platS*.8,.9*s,4,1);const roof=mesh(roofGeo,M.roof);roof.rotation.y=Math.PI/4;roof.position.y=legH+platH+railH+.45*s;g.add(_edge(roof));return{group:g,r:s*1.4,h:legH+platH+railH+.9*s}}
-function _bRoadSegment(s=1,lenScale){const M=_propMaterials(),g=grp();const w=2.4,len=3*(lenScale!=null?lenScale:s);const plate=mesh(new T.BoxGeometry(len,.04,w),M.road);plate.position.y=.02;g.add(_edge(plate,.5));const stripe=mesh(new T.BoxGeometry(len*.55,.06,.12),M.paint);stripe.position.y=.05;g.add(stripe);return{group:g,r:Math.max(len,w)*.5,h:.06}}
 function _bWoods(s=1){const M=_propMaterials(),g=grp();const n=5+Math.floor(Math.random()*3);for(let i=0;i<n;i++){const ang=(i/n)*Math.PI*2+Math.random()*.4,d=Math.random()*1.6*s,trunkH=(1.2+Math.random()*.8)*s,trunkR=(.13+Math.random()*.1)*s,foH=(2+Math.random()*1.4)*s,foR=(.85+Math.random()*.5)*s;const trunk=mesh(new T.CylinderGeometry(trunkR*.85,trunkR,trunkH,5),M.wood);trunk.position.set(Math.cos(ang)*d,trunkH/2,Math.sin(ang)*d);g.add(_edge(trunk));const cone=mesh(new T.ConeGeometry(foR,foH,5,1),mat(new C3(0x4a6a3a).lerp(new C3(0x6a8a5a),Math.random()),{roughness:.85}));cone.position.set(Math.cos(ang)*d,trunkH+foH/2,Math.sin(ang)*d);cone.rotation.y=Math.random()*Math.PI*2;g.add(_edge(cone))}return{group:g,r:2.5*s,h:4*s}}
 function _bBarrier(s=1){const M=_propMaterials(),g=grp();const len=3*s;const top=mesh(new T.BoxGeometry(len,.18,.18),M.paint);top.position.y=1*s;g.add(_edge(top,.8));const base=mesh(new T.BoxGeometry(len,.18,.18),M.dark);base.position.y=.1*s;g.add(_edge(base,.8));for(let i=0;i<3;i++){const post=mesh(new T.BoxGeometry(.12,1*s,.12),M.dark);post.position.set(-len/2+i*len/2,.5*s,0);g.add(_edge(post,.7))}for(let i=0;i<4;i++){const dash=mesh(new T.BoxGeometry(len*.18,.19,.19),M.dark);dash.position.set(-len*.4+i*len*.27,1*s,0);g.add(dash)}return{group:g,r:len*.55,h:1.1*s}}
 function _bCow(s=1){const M=_propMaterials(),g=grp();const body=mesh(new T.BoxGeometry(1.4*s,.9*s,.7*s),M.cow);body.position.y=.95*s;g.add(_edge(body,.7));for(const[sx,sz]of[[-.5,-.25],[.5,-.25],[-.5,.25],[.5,.25]]){const leg=mesh(new T.BoxGeometry(.13*s,.55*s,.13*s),M.cowDark);leg.position.set(sx*s,.275*s,sz*s);g.add(_edge(leg,.6))}const head=mesh(new T.BoxGeometry(.5*s,.5*s,.5*s),M.cow);head.position.set(.85*s,1.15*s,0);g.add(_edge(head,.7));const snout=mesh(new T.BoxGeometry(.22*s,.3*s,.3*s),M.cowDark);snout.position.set(1.1*s,1*s,0);g.add(_edge(snout,.7));for(const sz of[-.18,.18]){const ear=mesh(new T.BoxGeometry(.12*s,.18*s,.06*s),M.cowDark);ear.position.set(.85*s,1.35*s,sz*s);g.add(ear)}const patch=mesh(new T.BoxGeometry(.4*s,.92*s,.72*s),M.cowDark);patch.position.set(-.15*s,.95*s,0);g.add(patch);g.rotation.y=Math.random()*Math.PI*2;return{group:g,r:.9*s,h:1.5*s}}
@@ -771,11 +736,9 @@ function _bBarn(s=1){const M=_propMaterials(),g=grp();const w=5*s,d=3.6*s,h=2.6*
 function _bWell(s=1){const M=_propMaterials(),g=grp();const rOut=.7*s,rIn=.55*s,wallH=.7*s;const wall=mesh(new T.CylinderGeometry(rOut,rOut,wallH,12),M.wall);wall.position.y=wallH/2;g.add(_edge(wall,.8));const water=mesh(new T.CylinderGeometry(rIn,rIn,.05,12),M.water);water.position.y=wallH-.04;g.add(water);for(const sx of[-1,1]){const post=mesh(new T.BoxGeometry(.1*s,1.4*s,.1*s),M.wood);post.position.set(sx*rOut*.85,wallH+.7*s,0);g.add(_edge(post,.7))}const beam=mesh(new T.BoxGeometry(rOut*2.2,.12*s,.12*s),M.wood);beam.position.y=wallH+1.4*s;g.add(_edge(beam,.7));const roofGeo=new T.ConeGeometry(rOut*1.1,.5*s,4,1);const roof=mesh(roofGeo,M.dark);roof.rotation.y=Math.PI/4;roof.position.y=wallH+1.65*s;g.add(_edge(roof,.7));const bucket=mesh(new T.BoxGeometry(.22*s,.25*s,.22*s),M.wood);bucket.position.y=wallH+.4*s;g.add(_edge(bucket,.6));return{group:g,r:rOut*1.4,h:wallH+1.9*s}}
 function _bTruck(s=1){const M=_propMaterials(),g=grp();const cabW=1.2*s,cabH=1*s,cabL=1.1*s;const chassis=mesh(new T.BoxGeometry(cabW*1.05,.18,3.4*s),M.dark);chassis.position.y=.45*s;g.add(_edge(chassis,.6));const cab=mesh(new T.BoxGeometry(cabW,cabH,cabL),M.paint);cab.position.set(0,.65*s+cabH/2,-1*s);g.add(_edge(cab));const cabWin=mesh(new T.BoxGeometry(cabW*.95,cabH*.45,.04),M.dark);cabWin.position.set(0,.65*s+cabH*.7,-1*s-cabL/2-.02);g.add(cabWin);const bedW=cabW*1.05,bedL=2.1*s,bedH=.7*s;const bed=mesh(new T.BoxGeometry(bedW,bedH,bedL),M.paint);bed.position.set(0,.55*s+bedH/2,.5*s);g.add(_edge(bed,.8));const wR=.32*s,wL=.18*s;for(const[sx,sz]of[[-1,-1.2],[1,-1.2],[-1,.1],[1,.1],[-1,1.2],[1,1.2]]){const wheelGeo=new T.CylinderGeometry(wR,wR,wL,10);wheelGeo.rotateZ(Math.PI/2);const wheel=mesh(wheelGeo,M.dark);wheel.position.set(sx*(cabW/2+wL/3),wR,sz*s);g.add(_edge(wheel,.5))}return{group:g,r:1.5*s,h:1.7*s}}
 function _bCar(s=1){const M=_propMaterials(),g=grp();const bw=1.1*s,bl=2.2*s,bh=.45*s;const body=mesh(new T.BoxGeometry(bw,bh,bl),M.paint);body.position.y=.4*s+bh/2;g.add(_edge(body));const ch=.5*s;const cabin=mesh(new T.BoxGeometry(bw*.9,ch,bl*.5),M.dark);cabin.position.y=.4*s+bh+ch/2;g.add(_edge(cabin,.7));const wR=.24*s,wL=.16*s;for(const[sx,sz]of[[-1,-.7],[1,-.7],[-1,.7],[1,.7]]){const wheelGeo=new T.CylinderGeometry(wR,wR,wL,10);wheelGeo.rotateZ(Math.PI/2);const wheel=mesh(wheelGeo,M.dark);wheel.position.set(sx*(bw/2+wL/3),wR,sz*s);g.add(_edge(wheel,.5))}return{group:g,r:1.1*s,h:1.4*s}}
-// kind: solid=blocks tank/bullets; hp=damage to destroy; collision radius derived from build result; passable=true means tanks drive over (roads)
 const PROPS_CATALOG={
 'house':{label:'HOUSE',build:_bHouse,baseScale:1,hp:60,solid:true},
 'watchtower':{label:'WATCHTOWER',build:_bWatchtower,baseScale:1,hp:40,solid:true},
-'road':{label:'ROAD',build:_bRoadSegment,baseScale:1,hp:0,solid:false,passable:true},
 'woods':{label:'WOODS',build:_bWoods,baseScale:1,hp:10,solid:true},
 'barrier':{label:'BARRIER',build:_bBarrier,baseScale:1,hp:8,solid:true},
 'cow':{label:'COW',build:_bCow,baseScale:1,hp:3,solid:true},
@@ -784,7 +747,7 @@ const PROPS_CATALOG={
 'truck':{label:'TRUCK',build:_bTruck,baseScale:1,hp:25,solid:true},
 'car':{label:'CAR',build:_bCar,baseScale:1,hp:18,solid:true},
 };
-function spawnProp(kind,x,z,scale,opts){const spec=PROPS_CATALOG[kind];if(!spec||!TERRAIN.palette)return null;const built=spec.build(scale||spec.baseScale,opts&&opts.lenScale);const gy=terrainHeightAt(x,z);built.group.position.set(x,gy,z);if(opts){if(opts.rotEuler){built.group.rotation.set(opts.rotEuler[0]||0,opts.rotEuler[1]||0,opts.rotEuler[2]||0,opts.rotEuler[3]||'XYZ')}else if(opts.rotY!=null){built.group.rotation.y=opts.rotY}if(opts.yOffset)built.group.position.y+=opts.yOffset}else if(kind==='road'){built.group.rotation.y=Math.random()*Math.PI*2}scene.add(built.group);const prop={kind,x,z,y:gy,r:built.r,h:built.h,mesh:built.group,hp:spec.hp,maxHp:spec.hp,solid:spec.solid!==false,passable:!!spec.passable};TERRAIN.props.push(prop);return prop}
+function spawnProp(kind,x,z,scale,opts){const spec=PROPS_CATALOG[kind];if(!spec||!TERRAIN.palette)return null;const built=spec.build(scale||spec.baseScale);const gy=terrainHeightAt(x,z);built.group.position.set(x,gy,z);if(opts){if(opts.rotEuler)built.group.rotation.set(opts.rotEuler[0]||0,opts.rotEuler[1]||0,opts.rotEuler[2]||0,opts.rotEuler[3]||'XYZ');else if(opts.rotY!=null)built.group.rotation.y=opts.rotY;if(opts.yOffset)built.group.position.y+=opts.yOffset}scene.add(built.group);const prop={kind,x,z,y:gy,r:built.r,h:built.h,mesh:built.group,hp:spec.hp,maxHp:spec.hp,solid:spec.solid!==false};TERRAIN.props.push(prop);return prop}
 const MapEditor={enabled:false,brush:'tree',radius:3,spacing:2,lastPaint:null,mouseDown:false,cursorMesh:null};
 function ensureEditorCursor(){if(MapEditor.cursorMesh)return MapEditor.cursorMesh;const rg=new T.RingGeometry(.95,1,36);rg.rotateX(-Math.PI/2);const rm=bmat(0xffa050,{transparent:true,opacity:.8,side:DS,depthTest:false});const ring=mesh(rg,rm);ring.renderOrder=1000;ring.visible=false;scene.add(ring);MapEditor.cursorMesh=ring;return ring}
 function setEditorEnabled(on){MapEditor.enabled=!!on;const btn=document.getElementById('map-editor-toggle');if(btn)btn.textContent=MapEditor.enabled?'EDITOR :: ON':'EDITOR :: OFF';document.body.classList.toggle('editor-on',MapEditor.enabled);ensureEditorCursor().visible=MapEditor.enabled}
@@ -801,103 +764,63 @@ for(let i=TERRAIN.props.length-1;i>=0;i--){const p=TERRAIN.props[i],dx=p.x-gp.x,
 else if(PROPS_CATALOG[b]){const baseScale=PROPS_CATALOG[b].baseScale||1,jitter=1+(Math.random()*2-1)*(vr/30)*.6;spawnProp(b,gp.x,gp.z,baseScale*jitter)}
 MapEditor.lastPaint=gp.clone()}
 function maybePaintAtMouse(){const gp=getMouseGroundPoint();if(!gp)return;if(MapEditor.lastPaint){const dx=gp.x-MapEditor.lastPaint.x,dz=gp.z-MapEditor.lastPaint.z;if(dx*dx+dz*dz<MapEditor.spacing*MapEditor.spacing)return}paintAtMouse()}
-// Click-drag roads: start point captured on mousedown, segments laid at mouseup along the line.
-// Road follows the terrain: each tile spans from one ground sample to the next, pitched to match the local slope.
-// Road follows the heightmap triangulation: A* finds shortest path along grid edges from nearest vertex to a to nearest vertex to b, then one tile per edge.
-function paintRoadLine(a,b){
-const sz=TERRAIN.size,sg=TERRAIN.seg,H=TERRAIN.heights;if(!H||!sg)return;
-const cell=sz/sg,W=sg+1;
-// Convert world (x,z) to grid (ix,iz), clamped to bounds
-const toGrid=(x,z)=>[Math.max(0,Math.min(sg,Math.round((x+sz/2)/cell))),Math.max(0,Math.min(sg,Math.round((z+sz/2)/cell)))];
-const toWorld=(ix,iz)=>[ (ix/sg-.5)*sz, (iz/sg-.5)*sz, H[iz*W+ix] ];
-const [sx,sz0]=toGrid(a.x,a.z),[gx,gz]=toGrid(b.x,b.z);
-if(sx===gx&&sz0===gz)return;// trivial: same vertex
-// PlaneGeometry triangulation: each quad split by (+1,+1) diagonal, so neighbors are 4 cardinals + 2 diagonals (+1,+1),(-1,-1)
-const NB=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1]];
-const start=sz0*W+sx,goal=gz*W+gx;
-// A* with slope-aware cost. Steep edges cost extra so paths prefer flat ground.
-const open=new Map(),closed=new Set(),gScore=new Map(),came=new Map();
-const fOf=(id,gv)=>{const z=Math.floor(id/W),x=id-z*W;const dx=(gx-x)*cell,dz=(gz-z)*cell;return gv+Math.sqrt(dx*dx+dz*dz)};
-gScore.set(start,0);open.set(start,fOf(start,0));
-let path=null,iter=0,MAX_ITER=8000;
-while(open.size&&iter++<MAX_ITER){
-// pick lowest-f from open
-let cur=-1,curF=Infinity;for(const[k,v]of open){if(v<curF){curF=v;cur=k}}
-if(cur===goal){path=[];let p=cur;while(p!=null){path.push(p);p=came.get(p)}path.reverse();break}
-open.delete(cur);closed.add(cur);
-const cz=Math.floor(cur/W),cx=cur-cz*W,cy=H[cur];
-for(const[ox,oz]of NB){const nx=cx+ox,nz=cz+oz;if(nx<0||nx>sg||nz<0||nz>sg)continue;const nid=nz*W+nx;if(closed.has(nid))continue;
-const ny=H[nid],wd=Math.sqrt(ox*ox+oz*oz)*cell,dy=ny-cy,slope=Math.abs(dy)/wd,slopePen=1+slope*4;// 4x penalty per unit slope encourages flat paths
-const tentG=(gScore.get(cur)||0)+wd*slopePen;
-const prevG=gScore.get(nid);
-if(prevG==null||tentG<prevG){came.set(nid,cur);gScore.set(nid,tentG);open.set(nid,fOf(nid,tentG))}}
-}
-if(!path||path.length<2){console.warn('[ROAD] A* failed or path too short (iter='+iter+')');addKillFeed('ROAD // PATH TOO LONG OR BLOCKED');return}
-// Lay one road tile per edge in the path. Use lenScale so only the length matches the edge — width stays uniform.
-const TILE_LEN=3.0;
-for(let i=0;i<path.length-1;i++){
-const id0=path[i],id1=path[i+1];
-const z0i=Math.floor(id0/W),x0i=id0-z0i*W,z1i=Math.floor(id1/W),x1i=id1-z1i*W;
-const [wx0,wz0,wy0]=toWorld(x0i,z0i),[wx1,wz1,wy1]=toWorld(x1i,z1i);
-const dx=wx1-wx0,dz=wz1-wz0,dy=wy1-wy0,horiz=Math.sqrt(dx*dx+dz*dz);
-const mx=(wx0+wx1)/2,mz=(wz0+wz1)/2,myw=(wy0+wy1)/2;
-const yaw=-Math.atan2(dz,dx);
-const pitch=horiz>.0001?Math.atan2(dy,horiz):0;
-const lenScale=horiz/TILE_LEN;
-spawnProp('road',mx,mz,1,{lenScale,rotEuler:[0,yaw,-pitch,'YZX'],yOffset:myw-terrainHeightAt(mx,mz)+.025});
-}
-addKillFeed(`ROAD // ${path.length-1} SEGMENTS`)}
 // ===== OBJ DRAG-DROP =====
-// Lazy load Three.js OBJLoader once; on success, register dropped files as custom brush kinds.
 let _objLoader=null,_objLoaderPromise=null;
 function ensureOBJLoader(){if(_objLoader)return Promise.resolve(_objLoader);if(_objLoaderPromise)return _objLoaderPromise;_objLoaderPromise=import('https://unpkg.com/three@0.160.0/examples/jsm/loaders/OBJLoader.js').then(m=>{_objLoader=new m.OBJLoader();return _objLoader}).catch(e=>{_objLoaderPromise=null;throw new Error('OBJLoader CDN failed: '+e.message)});return _objLoaderPromise}
-// Each imported OBJ becomes a kind like 'obj:rocket-launcher'; its geometry is stored in OBJ_LIBRARY for reuse.
-const OBJ_LIBRARY={};  // name -> {geo: BufferGeometry (merged), bbox: Box3, label}
+const OBJ_LIBRARY={};
 async function importObjFile(file){
 const loader=await ensureOBJLoader();
 const text=await file.text();
 const group=loader.parse(text);
-// Merge all child meshes into a single BufferGeometry — needed because spawning N instances cheaply means one geometry shared by all
 const geos=[];group.traverse(o=>{if(o.isMesh&&o.geometry)geos.push(o.geometry.clone().applyMatrix4(o.matrixWorld||new M4()))});
 if(!geos.length)throw new Error('OBJ has no meshes');
 const merged=geos[0].clone();// trivial merge for stage 1: use first mesh; full BufferGeometryUtils merge can come later
-// Compute bounding box, center on origin, scale to ~3 units tall (game-friendly size)
 merged.computeBoundingBox();const bb=merged.boundingBox,sz=v3();bb.getSize(sz);const cy=(bb.min.y+bb.max.y)/2,cx=(bb.min.x+bb.max.x)/2,cz=(bb.min.z+bb.max.z)/2;const targetH=3,scale=sz.y>0.001?targetH/sz.y:1;merged.translate(-cx,-bb.min.y,-cz);merged.scale(scale,scale,scale);merged.computeBoundingBox();merged.computeVertexNormals();
 const baseName=file.name.replace(/\.obj$/i,'').toLowerCase().replace(/[^a-z0-9_-]+/g,'-').slice(0,30)||'obj';let name=baseName,n=2;while(OBJ_LIBRARY[name])name=baseName+'-'+(n++);const fbb=merged.boundingBox,r=Math.max(fbb.max.x-fbb.min.x,fbb.max.z-fbb.min.z)*.5,h=fbb.max.y-fbb.min.y;
 OBJ_LIBRARY[name]={geo:merged,r,h,label:file.name.replace(/\.obj$/i,'').toUpperCase().slice(0,18)};
-// Register as a custom prop kind
 PROPS_CATALOG['obj:'+name]={label:OBJ_LIBRARY[name].label,build:function(s){return _bObj(name,s||1)},baseScale:1,hp:30,solid:true,custom:true};
 addKillFeed(`OBJ LOADED // ${name} (h=${h.toFixed(1)}m, r=${r.toFixed(1)}m)`);
-// New kind added — clear thumb cache for that kind, repopulate library if visible
 delete THUMB_CACHE['obj:'+name];
 if(document.getElementById('lib-grid'))populateLibrary();
 return name}
 function _bObj(name,s){const lib=OBJ_LIBRARY[name];if(!lib)return{group:grp(),r:1,h:1};const g=grp();const M=_propMaterials();const m=mesh(lib.geo,mat(new C3(0x9a8e76),{roughness:.9}));m.scale.setScalar(s);g.add(m);m.add(new T.LineSegments(new T.EdgesGeometry(lib.geo),lmat(M.line,{transparent:true,opacity:CFG.wire})));return{group:g,r:lib.r*s,h:lib.h*s}}
-// Drag-drop handlers on the canvas
-function attachObjDrop(){const tgt=document.body;
+{const tgt=document.body;
 tgt.addEventListener('dragover',e=>{if(e.dataTransfer&&[...e.dataTransfer.items].some(i=>i.kind==='file')){e.preventDefault();e.dataTransfer.dropEffect='copy'}});
 tgt.addEventListener('drop',async e=>{const files=e.dataTransfer&&e.dataTransfer.files;if(!files||!files.length)return;e.preventDefault();const objFiles=[...files].filter(f=>/\.obj$/i.test(f.name));if(!objFiles.length)return;for(const f of objFiles){try{const name=await importObjFile(f);CFG.mapBrush='obj:'+name;MapEditor.brush=CFG.mapBrush;sfx.ui(800,.08)}catch(err){console.error('OBJ import failed:',err);addKillFeed(`OBJ FAILED // ${f.name}: ${err.message}`);sfx.ui(200,.1)}}});}
-attachObjDrop();
 // ===== LIBRARY THUMBNAILS =====
-// Render a small offscreen iso-view of any item from the catalog. Returns a data URL.
 let _thumbRenderer=null,_thumbScene=null,_thumbCam=null;
 function ensureThumbRig(){if(_thumbRenderer)return;const tc=document.createElement('canvas');tc.width=96;tc.height=96;_thumbRenderer=new T.WebGLRenderer({canvas:tc,antialias:true,preserveDrawingBuffer:true,alpha:true});_thumbRenderer.setClearColor(0x1c2024,0);_thumbScene=new T.Scene();_thumbScene.background=null;const l=new T.DirectionalLight(0xffffff,.95);l.position.set(5,8,3);_thumbScene.add(l);_thumbScene.add(new T.HemisphereLight(0xdde0d8,0x4a4a40,.6));_thumbScene.add(new T.AmbientLight(0xffffff,.3));_thumbCam=new T.OrthographicCamera(-4,4,4,-4,.1,100);_thumbCam.position.set(7,7,7);_thumbCam.lookAt(0,1.2,0)}
 function renderThumb(kind){ensureThumbRig();const spec=PROPS_CATALOG[kind];let built;if(spec)built=spec.build(spec.baseScale||1);else if(kind==='tree'){built=_buildTreeForThumb()}else if(kind==='rock-s'){const g=grp(),geo=rockGeo(1.3,1.3*.18,Math.random),M=_propMaterials(),m=mesh(geo,mat(new C3(0x7a7468),{roughness:.95}));m.position.y=1;g.add(m);m.add(new T.LineSegments(new T.EdgesGeometry(geo),lmat(M.line,{transparent:true,opacity:.8})));built={group:g,r:1.5,h:2}}else if(kind==='rock-l'){const g=grp(),geo=rockGeo(2.6,2.6*.18,Math.random),M=_propMaterials(),m=mesh(geo,mat(new C3(0x7a7468),{roughness:.95}));m.position.y=1.8;g.add(m);m.add(new T.LineSegments(new T.EdgesGeometry(geo),lmat(M.line,{transparent:true,opacity:.8})));built={group:g,r:3,h:3.5}}else return null;
-// Fit camera to bbox
 const maxDim=Math.max(built.r*2,built.h)*.75;_thumbCam.left=-maxDim;_thumbCam.right=maxDim;_thumbCam.top=maxDim;_thumbCam.bottom=-maxDim;_thumbCam.lookAt(0,built.h*.4,0);_thumbCam.updateProjectionMatrix();
 _thumbScene.add(built.group);_thumbRenderer.render(_thumbScene,_thumbCam);const url=_thumbRenderer.domElement.toDataURL('image/png');_thumbScene.remove(built.group);built.group.traverse(o=>o.geometry?.dispose?.());return url}
 function _buildTreeForThumb(){const g=grp(),M=_propMaterials(),trunkH=1.6,trunkR=.22,foH=2.8,foR=1.2;const trunk=mesh(new T.CylinderGeometry(trunkR*.85,trunkR,trunkH,5),M.wood);trunk.position.y=trunkH/2;g.add(trunk);trunk.add(new T.LineSegments(new T.EdgesGeometry(trunk.geometry),lmat(M.line,{transparent:true,opacity:.8})));const cone=mesh(new T.ConeGeometry(foR,foH,5,1),mat(new C3(0x6a8a5a),{roughness:.85}));cone.position.y=trunkH+foH/2;g.add(cone);cone.add(new T.LineSegments(new T.EdgesGeometry(cone.geometry),lmat(M.line,{transparent:true,opacity:.8})));return{group:g,r:1.3,h:trunkH+foH}}
 function getLibraryItems(){const items=[{kind:'tree',label:'TREE'},{kind:'rock-s',label:'ROCK S'},{kind:'rock-l',label:'ROCK L'}];for(const k of Object.keys(PROPS_CATALOG))items.push({kind:k,label:PROPS_CATALOG[k].label});return items}
-// Cache rendered thumbs since they're identical between renders
 const THUMB_CACHE={};
 function getThumb(kind){if(THUMB_CACHE[kind])return THUMB_CACHE[kind];const url=renderThumb(kind);if(url)THUMB_CACHE[kind]=url;return url}
 function attachEditorMouse(){const c=renderer?.domElement||canvas;if(!c)return;
-c.addEventListener('mousedown',e=>{if(!MapEditor.enabled||e.button!==0)return;e.preventDefault();e.stopPropagation();MapEditor.mouseDown=true;MapEditor.lastPaint=null;if(MapEditor.brush==='road'){const gp=getMouseGroundPoint();if(gp)MapEditor.roadStart=gp.clone()}else paintAtMouse()},true);
-window.addEventListener('mouseup',e=>{if(e.button!==0)return;if(MapEditor.mouseDown&&MapEditor.brush==='road'&&MapEditor.roadStart){const gp=getMouseGroundPoint();if(gp)paintRoadLine(MapEditor.roadStart,gp);MapEditor.roadStart=null}MapEditor.mouseDown=false});
-c.addEventListener('mousemove',()=>{if(!MapEditor.enabled)return;if(MapEditor.mouseDown&&MapEditor.brush!=='road')maybePaintAtMouse()})}
+c.addEventListener('mousedown',e=>{if(!MapEditor.enabled||e.button!==0)return;e.preventDefault();e.stopPropagation();MapEditor.mouseDown=true;MapEditor.lastPaint=null;paintAtMouse()},true);
+window.addEventListener('mouseup',e=>{if(e.button===0)MapEditor.mouseDown=false});
+c.addEventListener('mousemove',()=>{if(!MapEditor.enabled)return;if(MapEditor.mouseDown)maybePaintAtMouse()})}
+// DEV camera controller state: orbit yaw/pitch around player, pan offsets in world space, distance for zoom
+const CamCtrl={orbitYaw:Math.PI*.25,orbitPitch:Math.PI*.35,panX:0,panZ:0,dist:80,active:false,panning:false,lastX:0,lastY:0};
+function attachCamControls(){const c=renderer?.domElement||canvas;if(!c)return;
+const dev=()=>CFG.camMode==='1'||CFG.camMode===1;
+c.addEventListener('mousedown',e=>{if(!dev())return;if(e.button!==1)return;e.preventDefault();CamCtrl.active=true;CamCtrl.panning=e.shiftKey;CamCtrl.lastX=e.clientX;CamCtrl.lastY=e.clientY});
+window.addEventListener('mouseup',e=>{if(e.button===1)CamCtrl.active=false});
+window.addEventListener('mousemove',e=>{if(!CamCtrl.active||!dev())return;let dx=e.clientX-CamCtrl.lastX,dy=e.clientY-CamCtrl.lastY;CamCtrl.lastX=e.clientX;CamCtrl.lastY=e.clientY;if(CamCtrl.panning||e.shiftKey){const sens=CFG.camPanSens||1;dx*=sens*(CFG.camInvertPanX?-1:1);dy*=sens*(CFG.camInvertPanY?-1:1);const ang=CamCtrl.orbitYaw,s=CamCtrl.dist*.003;CamCtrl.panX+=-dx*Math.cos(ang)*s+dy*Math.sin(ang)*s;CamCtrl.panZ+=dx*Math.sin(ang)*s+dy*Math.cos(ang)*s}else{const sens=CFG.camOrbitSens||1;dx*=sens*(CFG.camInvertOrbitX?-1:1);dy*=sens*(CFG.camInvertOrbitY?-1:1);CamCtrl.orbitYaw-=dx*.005;CamCtrl.orbitPitch=Math.max(.1,Math.min(Math.PI*.49,CamCtrl.orbitPitch-dy*.005))}});
+c.addEventListener('wheel',e=>{e.preventDefault();if(dev()){CamCtrl.dist=Math.max(15,Math.min(200,CamCtrl.dist*(1+e.deltaY*.0015)))}else{CFG.zoom=Math.max(10,Math.min(120,CFG.zoom+(e.deltaY>0?2:-2)));onResize();const s=$('#cfg-zoom'),l=$('#lbl-zoom');if(s){s.value=CFG.zoom;l.textContent=CFG.zoom}}},{passive:false})}
 function updateEditorCursor(){if(!MapEditor.enabled)return;const cur=MapEditor.cursorMesh;if(!cur)return;const gp=getMouseGroundPoint();if(!gp)return;cur.position.set(gp.x,gp.y+.05,gp.z);cur.scale.setScalar(MapEditor.radius);const b=MapEditor.brush,col=b==='erase'?0xff5040:b==='tree'?0x9aaf6a:b==='rock-s'||b==='rock-l'?0xc8c0a8:0xffa050;cur.material.color.setHex(col)}
 function exportMap(){return{version:2,fieldSize:CFG.fieldSize,seed:CFG.seed,trees:TERRAIN.trees.map(t=>({x:+t.x.toFixed(2),z:+t.z.toFixed(2)})),rocks:TERRAIN.rocks.map(r=>({x:+r.x.toFixed(2),z:+r.z.toFixed(2),r:+r.r.toFixed(2)})),props:(TERRAIN.props||[]).map(p=>({kind:p.kind,x:+p.x.toFixed(2),z:+p.z.toFixed(2)}))}}
 function importMap(data){if(!data||typeof data!=='object')return false;for(const t of TERRAIN.trees){scene.remove(t.mesh);t.mesh.traverse(o=>o.geometry?.dispose?.())}TERRAIN.trees.length=0;for(const r of TERRAIN.rocks){scene.remove(r.mesh);r.mesh.geometry?.dispose?.()}TERRAIN.rocks.length=0;for(const p of(TERRAIN.props||[])){scene.remove(p.mesh);p.mesh.traverse(o=>o.geometry?.dispose?.())}if(!TERRAIN.props)TERRAIN.props=[];TERRAIN.props.length=0;if(Array.isArray(data.trees))for(const t of data.trees)spawnTreeAt(t.x,t.z);if(Array.isArray(data.rocks))for(const r of data.rocks)spawnRockAt(r.x,r.z,r.r||1.5);if(Array.isArray(data.props))for(const p of data.props)spawnProp(p.kind,p.x,p.z);return true}
+// Top-down minimap preview: greyscale heightmap + rivers + big props (house/barn/watchtower/rock-l). Skips trees/cows/barriers/small rocks per design.
+function renderMinimap(canvas){if(!canvas||!TERRAIN.heights||!TERRAIN.size)return;const ctx=canvas.getContext('2d');const W=canvas.width,H=canvas.height;const sz=TERRAIN.size,sg=TERRAIN.seg,heights=TERRAIN.heights;let hmin=Infinity,hmax=-Infinity;for(let i=0;i<heights.length;i++){const v=heights[i];if(v<hmin)hmin=v;if(v>hmax)hmax=v}const hRange=Math.max(.01,hmax-hmin);const img=ctx.createImageData(W,H);const cellW=sz/sg;for(let py=0;py<H;py++){for(let px=0;px<W;px++){const wx=(px/W-.5)*sz,wz=(py/H-.5)*sz;const gxF=(wx+sz/2)/cellW,gzF=(wz+sz/2)/cellW;const gxi=Math.max(0,Math.min(sg,Math.floor(gxF))),gzi=Math.max(0,Math.min(sg,Math.floor(gzF)));const idx=gzi*(sg+1)+gxi;const h=heights[idx]||0;const norm=(h-hmin)/hRange;const v=Math.floor(40+norm*150);const o=(py*W+px)*4;img.data[o]=v;img.data[o+1]=v;img.data[o+2]=v*.92;img.data[o+3]=255}}
+// River overlay: walk riverMask via terrain heights (we don't have direct mask access; use rivers array meshes for centerlines)
+ctx.putImageData(img,0,0);if(TERRAIN.rivers?.length){ctx.fillStyle='rgba(70,110,140,.7)';ctx.strokeStyle='rgba(90,130,160,.85)';ctx.lineWidth=2;for(const r of TERRAIN.rivers){if(!r.segments)continue;ctx.beginPath();for(let i=0;i<r.segments.length;i++){const s=r.segments[i],px=(s.x/sz+.5)*W,py=(s.z/sz+.5)*H;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py)}ctx.lineWidth=Math.max(2,(r.width||3)*.5);ctx.stroke()}}
+// Props
+ctx.fillStyle='#a08868';for(const p of(TERRAIN.props||[])){if(!['house','barn','watchtower'].includes(p.kind))continue;const px=(p.x/sz+.5)*W,py=(p.z/sz+.5)*H;ctx.fillRect(px-2,py-2,4,4)}
+ctx.fillStyle='rgba(200,195,170,.85)';for(const rk of TERRAIN.rocks){if(rk.r<3)continue;const px=(rk.x/sz+.5)*W,py=(rk.z/sz+.5)*H,rad=Math.max(1.5,rk.r*.6);ctx.beginPath();ctx.arc(px,py,rad,0,Math.PI*2);ctx.fill()}
+// Border + scale label
+ctx.strokeStyle='rgba(255,255,255,.15)';ctx.strokeRect(.5,.5,W-1,H-1);ctx.fillStyle='rgba(255,255,255,.45)';ctx.font='8px ui-monospace,monospace';ctx.fillText(sz.toFixed(0)+'m',4,H-4)}
 // ===== HELI SPAWN =====
 let heliSpawnTimer=0;
 function maybeSpawnHelicopter(dt){if(!CFG.heliEnabled)return;if(gameState!=='playing')return;if(!roundActive)return;heliSpawnTimer+=dt;const itv=Math.max(3,CFG.heliInterval||25);if(heliSpawnTimer<itv)return;heliSpawnTimer=0;const ang=Math.random()*Math.PI*2,r=(TERRAIN.size||480)*.55,x=Math.cos(ang)*r,z=Math.sin(ang)*r,y=30,tgt=player&&!player.dead?player:null;const h=new Helicopter({name:`HELI-${Math.floor(Math.random()*900+100)}`,pos:v3(x,y,z),target:tgt});ENTITIES.helicopters.push(h);addKillFeed(`! HOSTILE HELI INBOUND // ${h.name}`)}
@@ -935,8 +858,17 @@ updateHelicopters(dt);updateHeliRockets(dt);updatePickups(dt);updateSurvive(dt);
 if(!MapEditor.enabled)updateHmg(dt);
 updateEditorCursor();
 let cx=0,cz=0;if(player&&!player.dead){cx=player.group.position.x;cz=player.group.position.z}
+if(CFG.camMode==='1'||CFG.camMode===1){
+// DEV mode: orbit around player using mouse-drag state; pan offsets applied to look target
+const oy=CamCtrl.orbitYaw,op=CamCtrl.orbitPitch,d=CamCtrl.dist;
+const px=cx+CamCtrl.panX,pz=cz+CamCtrl.panZ;
+const tx=px+Math.sin(oy)*Math.cos(op)*d,ty=12+Math.sin(op)*d,tz=pz+Math.cos(oy)*Math.cos(op)*d;
+camera.position.lerp(v3(tx,ty,tz),.18);camera.lookAt(px,12,pz)
+}else{
+// ISOMETRIC (default): locked angle, follows player, scroll-zoom only
 const rot=CFG.camRot*Math.PI/180,dist=100,height=70,tx=cx+Math.sin(rot)*dist,ty=height,tz=cz+Math.cos(rot)*dist;
-camera.position.lerp(v3(tx,ty,tz),.07);camera.lookAt(cx,0,cz);
+camera.position.lerp(v3(tx,ty,tz),.07);camera.lookAt(cx,12,cz)
+}
 listTick+=dt;if(listTick>.25){listTick=0;updatePlayerList()}drawRadar()}
 else if(gameState==='menu'){menuTurntable+=dt*.18;const r2=menuTurntable,d2=95,h2=65;camera.position.set(Math.sin(r2)*d2,h2,Math.cos(r2)*d2);camera.lookAt(0,0,0);drawMenuSweep()}
 renderer.render(scene,camera);requestAnimationFrame(frame)}
@@ -952,9 +884,6 @@ ctx.strokeStyle='rgba(180, 240, 200, 0.55)';ctx.lineWidth=1.2;ctx.beginPath();ct
 function onResize(){renderer.setSize(window.innerWidth,window.innerHeight,false);const a=window.innerWidth/window.innerHeight,z=CFG.zoom;camera.left=-z*a;camera.right=z*a;camera.top=z;camera.bottom=-z;camera.updateProjectionMatrix()}
 window.addEventListener('resize',onResize);onResize();
 // ===== UI WIRING — programmatic panel generation =====
-// Field types: 'sl' slider, 'tg' toggle, 'sg' seg-buttons, 'sw' swatches, 'bt' button-row, 'br' button-row brush extras, 'ta' textarea
-// Slider: [key,label,min,max,step,fmt?,onChange?]  ; fmt: number of decimals (0/1/2/3) or null => integer
-// Decimals map from original: aiFire:1, turn:1, gravity:1, charge:1, mgEnemyMult:1, tracerLen:1, heliDmg:2, heliDropChance:2, heliRocketInterval:1, heliRocketBlast:1; bodyScale:2, barrelScale:2, wheelSize:2, mgDmg:2, tracerThick:2, tracerGlow:1, hmgDmg:2, wire:2, fill:2, grid:2, hpAlpha:2, rough:2, fireRate:2, mass:1, blast:1; drag:3, fog:3; bright:0,contrast:0,zoom:0,camRot:0,volMaster:0,volFire:0,volBoom:0,volUi:0,volAmb:0
 const FMT=v=>v.toFixed(0),F1=v=>v.toFixed(1),F2=v=>v.toFixed(2),F3=v=>v.toFixed(3),FI=v=>String(v);
 const SCALE_CB=()=>ENTITIES.tanks.forEach(t=>t.applyScales());
 const WHEEL_CB=()=>ENTITIES.tanks.forEach(t=>t.buildWheels?.());
@@ -964,12 +893,10 @@ const FOG_CB=()=>{if(scene.fog)scene.fog.density=CFG.fog};
 const ZOOM_CB=()=>onResize();
 const HPA_CB=()=>applyHpAlpha();
 const VOL_CB=()=>sfx.updateVolumes();
-// Panel definition: [paneId, [groupTitle, fields[]], ...]
 const PANEL={
 game:[
 ['CAMPAIGN',[['sl','startRound','STARTING ROUND',1,10,1,FI],['sl','roundBreak','BREAK BETWEEN ROUNDS',1,10,1,FI],['sl','baseRecover','BASE RECOVERY (S)',30,600,10,FI]]],
 ['AI',[['sl','aiSkill','AI SKILL',0,100,1,FI],['sl','aiFire','AI FIRE INTERVAL',.5,8,.1,F1]]],
-['MATCH BUTTONS',[['bt','match']]],
 ],
 physics:[
 ['VEHICLE',[['sl','speed','FORWARD SPEED',1,30,1,FI],['sl','rspeed','REVERSE SPEED',1,20,1,FI],['sl','accel','ACCEL',1,30,1,FI],['sl','turn','TURN SPEED',.2,5,.1,F1],['sl','hp','HP',10,500,5,FI],['sl','bodyScale','BODY SCALE',.5,2,.05,F2,SCALE_CB],['sl','barrelScale','BARREL SCALE',.5,2.5,.05,F2,SCALE_CB],['sl','wheelSize','WHEEL SIZE',.2,1.2,.05,F2,WHEEL_CB]]],
@@ -981,6 +908,8 @@ physics:[
 ],
 style:[
 ['PALETTE',[['sw','palette','COLOR PALETTE']]],
+['CAMERA MODE',[['sg','camMode','CAMERA MODE',[['0','ISOMETRIC'],['1','DEV ORBIT/PAN']]]]],
+['DEV CAMERA TUNING',[['sl','camOrbitSens','ORBIT SENSITIVITY',.1,3,.05,F2],['sl','camPanSens','PAN SENSITIVITY',.1,3,.05,F2],['tg','camInvertOrbitX','INVERT ORBIT X'],['tg','camInvertOrbitY','INVERT ORBIT Y'],['tg','camInvertPanX','INVERT PAN X'],['tg','camInvertPanY','INVERT PAN Y']]],
 ['WIRE & FILL',[['sl','wire','WIRE OPACITY',0,1,.05,F2,VIS_CB],['sl','fill','FILL OPACITY',.3,1,.05,F2,VIS_CB],['sl','grid','GRID OPACITY',0,1,.05,F2,VIS_CB],['sl','fog','FOG',0,.02,.001,F3,FOG_CB]]],
 ['CAMERA & POST',[['sl','bright','BRIGHTNESS',50,200,1,FMT,VIS_CB],['sl','contrast','CONTRAST',50,200,1,FMT,VIS_CB],['sl','zoom','ZOOM',10,120,1,FMT,ZOOM_CB],['sl','camRot','CAM ROTATION (°)',0,360,1,FMT],['sl','hpAlpha','HP BAR ALPHA',0,1,.05,F2,HPA_CB]]],
 ['HUD',[['tg','showCross','CROSSHAIR'],['tg','showHint','CONTROL HINTS']]],
@@ -988,9 +917,7 @@ style:[
 audio:[
 ['STATUS',[['sfxstatus']]],
 ['VOLUMES',[['sl','volMaster','MASTER',0,100,1,FMT,VOL_CB],['sl','volFire','FIRE',0,100,1,FMT,VOL_CB],['sl','volBoom','EXPLOSION',0,100,1,FMT,VOL_CB],['sl','volUi','UI',0,100,1,FMT,VOL_CB],['sl','volAmb','AMBIENT',0,100,1,FMT,VOL_CB]]],
-['SYNTH PROFILE',[['sg','sfxProfile','SYNTH PROFILE',[['punchy','PUNCHY'],['boomy','BOOMY'],['arcade','ARCADE']]]]],
 ['SAMPLE ROUTING',[['dd','smpCannon','CANNON SHOOTING'],['dd','smpMg','MG SHOOTING'],['dd','smpLoad','CANNON LOADING'],['dd','smpBoom','EXPLOSION'],['dd','smpImpact','IMPACT'],['dd','smpIdle','ENGINE IDLE'],['dd','smpDrive','ENGINE DRIVES'],['dd','smpUi','UI']]],
-['TEST',[['bt','sfxtest']]],
 ],
 map:[
 ['TERRAIN',[['sl','fieldSize','FIELD SIZE',96,512,8,FMT],['sl','rough','TERRAIN ROUGHNESS',.1,2,.05,F2],['sl','trees','TREE COUNT',0,1200,10,FMT],['sl','rocks','ROCK COUNT',0,400,5,FMT],['sl','rivers','RIVER COUNT',0,3,1,FI],['sl','seed','SEED',1,9999,1,FMT]]],
@@ -1000,7 +927,6 @@ map:[
 ['IMPORT / EXPORT',[['ta']]],
 ],
 };
-// store formatters per CFG key for reset use
 const FMTS={};
 function buildPanel(){
 const groupTpl=(title,inner)=>`<div class=field-group><div class=field-group-ttl>${title}</div>${inner}</div>`;
@@ -1009,34 +935,34 @@ const t=f[0];
 if(t==='sl'){const[,k,lab,mn,mx,st,fmt,cb]=f;FMTS[k]=fmt||FI;const def=CFG_DEFAULTS[k];const tt=`${lab} — default ${def} (${mn}..${mx})`;return `<div class=field title="${tt}"><div class=field-row><div class=field-label>${lab}</div><div class=field-val id=lbl-${k}></div></div><input type=range id=cfg-${k} min=${mn} max=${mx} step=${st} title="${tt}"></div>`}
 if(t==='tg'){const[,k,lab]=f;const tt=`${lab} — default ${CFG_DEFAULTS[k]?'ON':'OFF'}`;return `<div class="field toggle" title="${tt}"><div class=field-label>${lab}</div><div class="toggle-sw${CFG[k]?' on':''}" data-cfg=${k}></div></div>`}
 if(t==='sg'){const[,k,lab,opts]=f;const btns=opts.map(([v,t2])=>`<button data-v=${v}${CFG[k]===v?' class=on':''}>${t2}</button>`).join('');return `<div class=field><div class=field-row><div class=field-label>${lab}</div></div><div class=seg id=seg-${k}>${btns}</div></div>`}
-if(t==='dd'){const[,k,lab]=f;const opts=[['synth','SYNTH'],['none','NONE']].concat(Object.keys(SAMPLE_FILES).map(s=>[s,s.toUpperCase().replace(/_/g,' ')]));const cur=CFG[k];const optHtml=opts.map(([v,t2])=>`<option value="${v}"${v===cur?' selected':''}>${t2}</option>`).join('');const tt=`${lab} — sample source (default ${CFG_DEFAULTS[k]})`;return `<div class=field title="${tt}"><div class=field-row><div class=field-label>${lab}</div></div><select id=cfg-${k} class=dropdown title="${tt}" style="width:100%;background:var(--bg-2);color:var(--ink);border:1px solid var(--line-dim);padding:6px 8px;font-size:10px;font-family:inherit;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">${optHtml}</select></div>`}
+if(t==='dd'){const[,k,lab]=f;const opts=[['synth','SYNTH'],['none','NONE']].concat(Object.keys(SAMPLE_FILES).map(s=>[s,s.toUpperCase().replace(/_/g,' ')]));const cur=CFG[k];const optHtml=opts.map(([v,t2])=>`<option value="${v}"${v===cur?' selected':''}>${t2}</option>`).join('');const tt=`${lab} — sample source (default ${CFG_DEFAULTS[k]})`;return `<div class=field title="${tt}"><div class=field-row><div class=field-label>${lab}</div></div><div style="display:flex;gap:4px"><select id=cfg-${k} class=dropdown title="${tt}" style="flex:1;background:var(--bg-2);color:var(--ink);border:1px solid var(--line-dim);padding:6px 8px;font-size:10px;font-family:inherit;letter-spacing:.15em;text-transform:uppercase;cursor:pointer">${optHtml}</select><button class=btn id=play-${k} title="Play preview" style="flex:0 0 32px;padding:0;font-size:11px">▶</button></div></div>`}
 if(t==='sfxstatus'){return `<div class=field><div class=field-row><div class=field-label>SAMPLES LOADED</div><div class=field-val id=sfx-load-status>—</div></div><div id=sfx-load-warn style="font-size:9px;color:var(--danger);letter-spacing:.15em;margin-top:4px;display:none"></div><div class=btn-row style="margin-top:8px"><button class=btn id=btn-sfx-reload>RELOAD SAMPLES</button></div></div>`}
-if(t==='sw'){return `<div class=field><div class=field-row><div class=field-label>COLOR PALETTE</div><div class=field-val id=lbl-palette></div></div><div class=swatches id=palette-swatches></div></div>`}
+if(t==='sw'){const COLOR_KEYS=['bg','ground','accent','line','p1','p2','p3','p4'];const pickHtml=COLOR_KEYS.map(k=>`<div class=color-pick><label>${k.toUpperCase()}</label><input type=color id=col-${k} class=color-input data-pk=${k}></div>`).join('');return `<div class=field><div class=field-row><div class=field-label>COLOR PALETTE</div><div class=field-val id=lbl-palette></div></div><div class=swatches id=palette-swatches></div><div id=color-picks style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px">${pickHtml}</div></div>`}
 if(t==='bt'){const[,kind]=f;if(kind==='match')return `<div class=btn-row><button class=btn id=btn-restart>RESTART</button><button class=btn id=btn-pause>PAUSE</button></div><div class=btn-row style="margin-top:8px"><button class=btn id=btn-regen>NEW MAP</button><button class="btn danger" id=btn-quit>QUIT</button></div><div class=btn-row style="margin-top:8px"><button class="btn danger" id=btn-reset-all>RESET ALL DEFAULTS</button></div>`;if(kind==='sfxtest')return `<div class=btn-row><button class=btn id=btn-test-fire>TEST FIRE</button><button class=btn id=btn-test-boom>TEST BOOM</button></div>`}
 if(t==='br'){return `<div class=btn-row><button class=btn id=map-editor-toggle>EDITOR :: OFF</button></div>
-<div class=field style="margin-top:14px"><div class=field-row><div class=field-label>BRUSH</div></div><div class=seg id=seg-brush style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line-dim)"><button data-v=tree class=on title="Tree (single pine)">TREE</button><button data-v=rock-s title="Small rock">ROCK S</button><button data-v=rock-l title="Large rock">ROCK L</button><button data-v=woods title="Cluster of trees">WOODS</button><button data-v=house title="House with pitched roof">HOUSE</button><button data-v=barn title="Larger barn structure">BARN</button><button data-v=watchtower title="Wooden watchtower">TOWER</button><button data-v=well title="Stone water well">WELL</button><button data-v=road title="Road segment, ~5m">ROAD</button><button data-v=barrier title="Striped road barrier">BARRIER</button><button data-v=cow title="Cow (static)">COW</button><button data-v=truck title="Cargo truck">TRUCK</button><button data-v=car title="Civilian car">CAR</button><button data-v=erase title="Erase items in brush radius">ERASE</button></div></div>
+<div class=field style="margin-top:14px"><div class=field-row><div class=field-label>BRUSH</div></div><div class=seg id=seg-brush style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line-dim)"><button data-v=tree class=on title="Tree (single pine)">TREE</button><button data-v=rock-s title="Small rock">ROCK S</button><button data-v=rock-l title="Large rock">ROCK L</button><button data-v=woods title="Cluster of trees">WOODS</button><button data-v=house title="House with pitched roof">HOUSE</button><button data-v=barn title="Larger barn structure">BARN</button><button data-v=watchtower title="Wooden watchtower">TOWER</button><button data-v=well title="Stone water well">WELL</button><button data-v=barrier title="Striped road barrier">BARRIER</button><button data-v=cow title="Cow (static)">COW</button><button data-v=truck title="Cargo truck">TRUCK</button><button data-v=car title="Civilian car">CAR</button><button data-v=erase title="Erase items in brush radius">ERASE</button></div></div>
 <div class=field><div class=field-row><div class=field-label>BRUSH RADIUS</div><div class=field-val id=lbl-brushR>3.0</div></div><input type=range id=cfg-brushR min=1 max=12 step=.5 value=3></div>
 <div class=field><div class=field-row><div class=field-label>BRUSH SPACING</div><div class=field-val id=lbl-brushSpacing>2.00</div></div><input type=range id=cfg-brushSpacing min=.5 max=8 step=.1 value=2></div>
 <div class=field><div class=field-row><div class=field-label>BRUSH VARIETY</div><div class=field-val id=lbl-brushVariety>${CFG.brushVariety}</div></div><input type=range id=cfg-brushVariety min=0 max=30 step=1 value=${CFG.brushVariety}></div>
 <div class=btn-row style="margin-top:6px"><button class=btn id=map-clear-trees>CLEAR TREES</button><button class=btn id=map-clear-rocks>CLEAR ROCKS</button></div>
 <div class=btn-row style="margin-top:6px"><button class="btn danger" id=map-clear-all>CLEAR ALL</button></div>`}
 if(t==='lib'){return `<div class=field><div class=field-row><div class=field-label>BRUSH LIBRARY</div><div class=field-val style="font-size:9px;color:var(--ink-dim)">DRAG .OBJ HERE</div></div><div id=lib-grid style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px;max-height:340px;overflow-y:auto"></div></div>`}
-if(t==='ta'){return `<div class=btn-row><button class=btn id=map-export-json>EXPORT TO BOX</button><button class=btn id=map-export-download>DOWNLOAD .JSON</button></div>
-<textarea id=map-json-area style="margin-top:8px;width:100%;height:120px;background:rgba(0,0,0,.4);color:var(--ink);border:1px solid var(--line-dim);padding:6px;font-family:ui-monospace,monospace;font-size:10px"></textarea>
-<div class=btn-row style="margin-top:6px"><button class=btn id=map-import-json>IMPORT FROM BOX</button></div>`}
+if(t==='ta'){return `<div class=btn-row><button class=btn id=map-export-download>EXPORT .JSON</button><button class=btn id=map-import-json>IMPORT .JSON</button></div>
+<div style="margin-top:10px;display:flex;flex-direction:column;align-items:center;gap:6px">
+<canvas id=map-minimap width=200 height=200 style="width:200px;height:200px;background:#0a0c0e;border:1px solid var(--line-dim);image-rendering:pixelated"></canvas>
+<button class=btn id=map-refresh-minimap style="padding:6px 14px;font-size:9px">REFRESH PREVIEW</button>
+</div>
+<input type=file id=map-import-file accept=".json,application/json" style="display:none">`}
 return ''}
 for(const[paneId,groups]of Object.entries(PANEL)){const root=$('#pane-'+paneId);if(!root)continue;root.innerHTML=groups.map(([gT,fs])=>groupTpl(gT,fs.map(fieldHtml).join(''))).join('')}}
 buildPanel();
 function populateLibrary(){const grid=$('#lib-grid');if(!grid)return;grid.innerHTML='';const items=getLibraryItems();for(const it of items){const cell=document.createElement('button');cell.className='lib-cell';cell.dataset.kind=it.kind;cell.title=it.label;cell.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:4px;border:1px solid var(--line-dim);background:'+(CFG.mapBrush===it.kind?'rgba(184,121,74,.18)':'rgba(0,0,0,.3)')+';cursor:pointer;font-family:inherit;color:var(--ink);transition:all .12s';const img=document.createElement('img');img.style.cssText='width:64px;height:64px;background:rgba(0,0,0,.4);display:block;image-rendering:pixelated';const url=getThumb(it.kind);if(url)img.src=url;cell.appendChild(img);const lab=document.createElement('div');lab.style.cssText='font-size:8px;color:var(--ink-dim);letter-spacing:.15em;margin-top:3px;text-align:center;line-height:1.2';lab.textContent=it.label;cell.appendChild(lab);cell.addEventListener('mouseenter',()=>cell.style.borderColor='var(--accent)');cell.addEventListener('mouseleave',()=>cell.style.borderColor='var(--line-dim)');cell.addEventListener('click',()=>{CFG.mapBrush=it.kind;MapEditor.brush=it.kind;sfx.ui(640,.05);populateLibrary();const seg=$('#seg-brush');if(seg)seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===it.kind))});grid.appendChild(cell)}}
 populateLibrary();
-// hamburger
-dom.hamburger.addEventListener('click',()=>{if(devPopout&&!devPopout.closed){devPopout.focus();return}document.body.classList.toggle('panel-open');sfx.ui(700,.06)});
+dom.hamburger.addEventListener('click',()=>{sfx.ui(700,.06);openDevPopout()});
 // ===== DEV POPOUT (second window) =====
-// Expose what the popout needs to read/write live. Same-origin so the popout reads opener.* directly — CFG is shared by REFERENCE, not copied.
 let devPopout=null,devPopoutPoll=null;
 // ===== PRESET PACK (zip of cfg.json + meta.json + optional map.json) =====
 const KODKOD_VERSION='0.0.1';
-// JSZip is loaded lazily so the CDN can't block initial page load.
 let _jszipPromise=null;
 function ensureJSZip(){
 if(typeof window.JSZip!=='undefined')return Promise.resolve(window.JSZip);
@@ -1077,22 +1003,17 @@ const knownCfgKeys=new Set(Object.keys(CFG_DEFAULTS)),presetKeys=Object.keys(cfg
 const missingInPreset=[...knownCfgKeys].filter(k=>!(k in cfg)),unknownInPreset=presetKeys.filter(k=>!knownCfgKeys.has(k));
 const msg=`Preset version: ${meta.version||'?'}\nThis build: ${KODKOD_VERSION}\n\nNew keys in this build that preset doesn't have (will keep current values): ${missingInPreset.length}\nKeys in preset no longer in this build (will be ignored): ${unknownInPreset.length}\n\nContinue with import?`;
 if(!confirm(msg))return{...result,cancelled:true}}
-// Strict overlay: only set keys that exist in CFG_DEFAULTS
 for(const[k,v]of Object.entries(cfg)){if(k in CFG_DEFAULTS){CFG[k]=v;result.applied++}else result.unknownKeys.push(k)}
-// Apply map if present and user opted to
 if(mapFile&&opts.applyMap){const mapData=JSON.parse(await mapFile.async('string'));importMap(mapData);result.mapApplied=true}
-// Trigger broad re-application so live game reflects new state
 applyPaletteToDOM();applyVisuals();applyHpAlpha();sfx.updateVolumes?.();sfx.applyEngine?.();if(scene.fog)scene.fog.density=CFG.fog;ENTITIES.tanks.forEach(t=>t.applyScales());onResize();
 addKillFeed(`PRESET IMPORTED // ${meta.name||'PRESET'} (${result.applied} keys)`);
 return result}
-// Refresh main-window panel widgets to reflect new CFG (called by popout after import)
 function refreshMainPanelFromCfg(){
 document.querySelectorAll('input[type=range][id^="cfg-"]').forEach(el=>{const k=el.id.replace('cfg-','');if(k in CFG){el.value=CFG[k];const lbl=$('#lbl-'+k);if(lbl)lbl.textContent=(FMTS[k]||FI)(CFG[k])}});
 document.querySelectorAll('select[id^="cfg-"]').forEach(el=>{const k=el.id.replace('cfg-','');if(k in CFG)el.value=CFG[k]});
 document.querySelectorAll('.toggle-sw[data-cfg]').forEach(el=>{const k=el.dataset.cfg;if(k in CFG)el.classList.toggle('on',!!CFG[k])});
-['sfxProfile','mapBrush'].forEach(k=>{const seg=$('#seg-'+k);if(seg)seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===CFG[k]))});
+['mapBrush','camMode'].forEach(k=>{const seg=$('#seg-'+k);if(seg)seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===CFG[k]))});
 document.querySelectorAll('#palette-swatches > div').forEach((sw,i)=>sw.classList.toggle('on',i===CFG.palette));const pl=$('#lbl-palette');if(pl)pl.textContent=PALETTES[CFG.palette].name}
-// (deferred: Object.assign(window, {...}) lives at the end of the module so all referenced names are defined)
 function buildDevPopoutHtml(){return `<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><title>KODKOD // DEV PANEL</title>
 <style>
 :root{--bg-0:#1c2024;--bg-1:#262b30;--bg-2:#313840;--line:#8e8b78;--line-dim:#5a5a4f;--ink:#d8d2bd;--ink-dim:#9c9684;--accent:#b8794a;--danger:#a8483a;--ok:#7a8b5a}
@@ -1137,6 +1058,11 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;background:var(--acce
 .swatches{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .swatch{aspect-ratio:1;border:1px solid var(--line-dim);cursor:pointer;position:relative}
 .swatch.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--accent)}
+.color-pick{display:flex;flex-direction:column;align-items:center;gap:2px}
+.color-pick label{font-size:8px;color:var(--ink-dim);letter-spacing:.15em}
+.color-input{width:100%;height:24px;border:1px solid var(--line-dim);background:transparent;cursor:pointer;padding:0}
+.color-input::-webkit-color-swatch-wrapper{padding:1px}
+.color-input::-webkit-color-swatch{border:none}
 .btn-row{display:flex;gap:8px}
 .btn{flex:1;padding:11px 8px;background:transparent;border:1px solid var(--line);color:var(--ink);cursor:pointer;font-size:10px;letter-spacing:.18em;transition:all .15s;font-family:inherit}
 .btn:hover{background:var(--accent);color:var(--bg-0);border-color:var(--accent)}
@@ -1154,46 +1080,48 @@ textarea{background:rgba(0,0,0,.4);color:var(--ink);border:1px solid var(--line-
 <div><div class=ttl>KODKOD // DEV PANEL</div><div class=sub>RUNTIME PARAMETERS // LIVE-LINKED TO MAIN WINDOW</div></div>
 <div class=right><div id=status>LINKED ✓</div><button class=btn id=btn-close-popout style="flex:0 0 auto;padding:8px 14px;font-size:9px">← BACK TO MAIN</button></div>
 </div>
+<div id=match-bar style="padding:10px 22px;border-bottom:1px solid var(--line-dim);display:grid;grid-template-columns:repeat(5,1fr);gap:8px;background:rgba(0,0,0,.2)"><button class=btn id=p-btn-restart>RESTART</button><button class=btn id=p-btn-pause>PAUSE</button><button class=btn id=p-btn-regen>NEW MAP</button><button class="btn danger" id=p-btn-quit>QUIT</button><button class="btn danger" id=p-btn-reset-all>RESET ALL</button></div>
 <div id=wrap>
 <div id=tabs></div>
 <div id=body></div>
 </div>
 <div id=foot><span id=foot-link>OPENER // CONNECTED</span><span>BUILD // 0.0.1</span><span id=foot-stamp></span></div>
-<script>
-(function(){
+<script>(function(){
 const op=window.opener;
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 function checkLink(){const stat=$('#status'),fl=$('#foot-link');if(!op||op.closed){stat.textContent='UNLINKED ✗';stat.classList.add('warn');fl.textContent='OPENER // GONE — CLOSE THIS WINDOW';return false}return true}
 if(!checkLink()){return}
 const CFG=op.CFG,CFG_DEFAULTS=op.CFG_DEFAULTS,PANEL=op.PANEL,PALETTES=op.PALETTES,SAMPLE_FILES=op.SAMPLE_FILES,FMTS=op.FMTS,FI=op.FI,SMP_KIND=op.SMP_KIND;
-// Build tabs (left strip) with friendly subtitles
 const TAB_INFO={game:'CAMPAIGN & AI',physics:'TUNING',style:'PALETTE & POST',audio:'SFX ROUTING',map:'TERRAIN & EDITOR'};
 const tabKeys=Object.keys(PANEL);
 $('#tabs').innerHTML=tabKeys.map((k,i)=>'<div class="tab'+(i===0?' active':'')+'" data-tab="'+k+'">'+k.toUpperCase()+'<span class=sub>'+(TAB_INFO[k]||'')+'</span></div>').join('');
-// Build panes
 function fieldHtml(f){
 const t=f[0];
 if(t==='sl'){const k=f[1],lab=f[2],mn=f[3],mx=f[4],st=f[5],fmt=f[6];FMTS[k]=fmt||FI;const def=CFG_DEFAULTS[k];const tt=lab+' — default '+def+' ('+mn+'..'+mx+')';return '<div class=field title="'+tt+'"><div class=field-row><div class=field-label>'+lab+'</div><div class=field-val id=lbl-'+k+'></div></div><input type=range id=cfg-'+k+' min='+mn+' max='+mx+' step='+st+' title="'+tt+'"></div>'}
 if(t==='tg'){const k=f[1],lab=f[2];const tt=lab+' — default '+(CFG_DEFAULTS[k]?'ON':'OFF');return '<div class="field toggle" title="'+tt+'"><div class=field-label>'+lab+'</div><div class="toggle-sw'+(CFG[k]?' on':'')+'" data-cfg='+k+'></div></div>'}
 if(t==='sg'){const[,k,lab,opts]=f;const btns=opts.map(function(o){return '<button data-v='+o[0]+(CFG[k]===o[0]?' class=on':'')+'>'+o[1]+'</button>'}).join('');return '<div class=field><div class=field-row><div class=field-label>'+lab+'</div></div><div class=seg id=seg-'+k+'>'+btns+'</div></div>'}
-if(t==='dd'){const k=f[1],lab=f[2];const opts=[['synth','SYNTH'],['none','NONE']].concat(Object.keys(SAMPLE_FILES).map(function(s){return[s,s.toUpperCase().replace(/_/g,' ')]}));const cur=CFG[k];const optHtml=opts.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===cur?' selected':'')+'>'+o[1]+'</option>'}).join('');const tt=lab+' — sample source (default '+CFG_DEFAULTS[k]+')';return '<div class=field title="'+tt+'"><div class=field-row><div class=field-label>'+lab+'</div></div><select id=cfg-'+k+' class=dropdown title="'+tt+'">'+optHtml+'</select></div>'}
+if(t==='dd'){const k=f[1],lab=f[2];const opts=[['synth','SYNTH'],['none','NONE']].concat(Object.keys(SAMPLE_FILES).map(function(s){return[s,s.toUpperCase().replace(/_/g,' ')]}));const cur=CFG[k];const optHtml=opts.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===cur?' selected':'')+'>'+o[1]+'</option>'}).join('');const tt=lab+' — sample source (default '+CFG_DEFAULTS[k]+')';return '<div class=field title="'+tt+'"><div class=field-row><div class=field-label>'+lab+'</div></div><div style="display:flex;gap:4px"><select id=cfg-'+k+' class=dropdown title="'+tt+'" style="flex:1">'+optHtml+'</select><button class=btn id=play-'+k+' style="flex:0 0 32px;padding:0;font-size:11px" title="Play preview">▶</button></div></div>'}
 if(t==='sfxstatus'){return '<div class=field><div class=field-row><div class=field-label>SAMPLES LOADED</div><div class=field-val id=sfx-load-status>—</div></div><div id=sfx-load-warn style="font-size:9px;color:var(--danger);letter-spacing:.15em;margin-top:4px;display:none"></div><div class=btn-row style="margin-top:8px"><button class=btn id=btn-sfx-reload>RELOAD SAMPLES</button></div></div>'}
-if(t==='sw'){return '<div class=field><div class=field-row><div class=field-label>COLOR PALETTE</div><div class=field-val id=lbl-palette></div></div><div class=swatches id=palette-swatches></div></div>'}
+if(t==='sw'){const COLOR_KEYS=['bg','ground','accent','line','p1','p2','p3','p4'];const pickHtml=COLOR_KEYS.map(function(k){return '<div class=color-pick><label>'+k.toUpperCase()+'</label><input type=color id=col-'+k+' class=color-input data-pk='+k+'></div>'}).join('');return '<div class=field><div class=field-row><div class=field-label>COLOR PALETTE</div><div class=field-val id=lbl-palette></div></div><div class=swatches id=palette-swatches></div><div id=color-picks style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px">'+pickHtml+'</div></div>'}
 if(t==='bt'){const[,kind]=f;if(kind==='match')return '<div class=btn-row><button class=btn id=btn-restart>RESTART</button><button class=btn id=btn-pause>PAUSE</button></div><div class=btn-row style="margin-top:8px"><button class=btn id=btn-regen>NEW MAP</button></div><div class=btn-row style="margin-top:8px"><button class="btn danger" id=btn-reset-all>RESET ALL DEFAULTS</button></div>';if(kind==='sfxtest')return '<div class=btn-row><button class=btn id=btn-test-fire>TEST FIRE</button><button class=btn id=btn-test-boom>TEST BOOM</button></div>'}
-if(t==='br'){const brushDefs=[['tree','TREE','Tree (single pine)'],['rock-s','ROCK S','Small rock'],['rock-l','ROCK L','Large rock'],['woods','WOODS','Cluster of trees'],['house','HOUSE','House with pitched roof'],['barn','BARN','Larger barn structure'],['watchtower','TOWER','Wooden watchtower'],['well','WELL','Stone water well'],['road','ROAD','Road segment, ~5m'],['barrier','BARRIER','Striped road barrier'],['cow','COW','Cow (static)'],['truck','TRUCK','Cargo truck'],['car','CAR','Civilian car'],['erase','ERASE','Erase items in brush radius']];const brushBtns=brushDefs.map(function(d){return '<button data-v='+d[0]+(CFG.mapBrush===d[0]?' class=on':'')+' title="'+d[2]+'">'+d[1]+'</button>'}).join('');return '<div class=btn-row><button class=btn id=map-editor-toggle>EDITOR :: '+(op.getMapEditor().enabled?'ON':'OFF')+'</button></div>'+
+if(t==='br'){const brushDefs=[['tree','TREE','Tree (single pine)'],['rock-s','ROCK S','Small rock'],['rock-l','ROCK L','Large rock'],['woods','WOODS','Cluster of trees'],['house','HOUSE','House with pitched roof'],['barn','BARN','Larger barn structure'],['watchtower','TOWER','Wooden watchtower'],['well','WELL','Stone water well'],['barrier','BARRIER','Striped road barrier'],['cow','COW','Cow (static)'],['truck','TRUCK','Cargo truck'],['car','CAR','Civilian car'],['erase','ERASE','Erase items in brush radius']];const brushBtns=brushDefs.map(function(d){return '<button data-v='+d[0]+(CFG.mapBrush===d[0]?' class=on':'')+' title="'+d[2]+'">'+d[1]+'</button>'}).join('');return '<div class=btn-row><button class=btn id=map-editor-toggle>EDITOR :: '+(op.getMapEditor().enabled?'ON':'OFF')+'</button></div>'+
 '<div class=field style="margin-top:14px"><div class=field-row><div class=field-label>BRUSH</div></div><div class=seg id=seg-brush style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line-dim)">'+brushBtns+'</div></div>'+
 '<div class=field><div class=field-row><div class=field-label>BRUSH RADIUS</div><div class=field-val id=lbl-brushR>'+op.getMapEditor().radius.toFixed(1)+'</div></div><input type=range id=cfg-brushR min=1 max=12 step=.5 value='+op.getMapEditor().radius+'></div>'+
 '<div class=field><div class=field-row><div class=field-label>BRUSH SPACING</div><div class=field-val id=lbl-brushSpacing>'+op.getMapEditor().spacing.toFixed(2)+'</div></div><input type=range id=cfg-brushSpacing min=.5 max=8 step=.1 value='+op.getMapEditor().spacing+'></div>'+
 '<div class=field><div class=field-row><div class=field-label>BRUSH VARIETY</div><div class=field-val id=lbl-brushVariety>'+CFG.brushVariety+'</div></div><input type=range id=cfg-brushVariety min=0 max=30 step=1 value='+CFG.brushVariety+'></div>'+
 '<div class=btn-row style="margin-top:6px"><button class=btn id=map-clear-trees>CLEAR TREES</button><button class=btn id=map-clear-rocks>CLEAR ROCKS</button></div>'+
 '<div class=btn-row style="margin-top:6px"><button class="btn danger" id=map-clear-all>CLEAR ALL</button></div>'}
-if(t==='ta'){return '<div class=btn-row><button class=btn id=map-export-json>EXPORT TO BOX</button><button class=btn id=map-export-download>DOWNLOAD .JSON</button></div><textarea id=map-json-area style="margin-top:8px;width:100%;height:120px"></textarea><div class=btn-row style="margin-top:6px"><button class=btn id=map-import-json>IMPORT FROM BOX</button></div>'}
+if(t==='ta'){return '<div class=btn-row><button class=btn id=map-export-download>EXPORT .JSON</button><button class=btn id=map-import-json>IMPORT .JSON</button></div>'+
+'<div style="margin-top:10px;display:flex;flex-direction:column;align-items:center;gap:6px">'+
+'<canvas id=map-minimap width=200 height=200 style="width:200px;height:200px;background:#0a0c0e;border:1px solid var(--line-dim);image-rendering:pixelated"></canvas>'+
+'<button class=btn id=map-refresh-minimap style="padding:6px 14px;font-size:9px">REFRESH PREVIEW</button>'+
+'</div>'+
+'<input type=file id=map-import-file accept=".json,application/json" style="display:none">'}
 if(t==='lib'){return '<div class=field><div class=field-row><div class=field-label>BRUSH LIBRARY</div><div class=field-val style="font-size:9px;color:var(--ink-dim)">DRAG .OBJ TO MAIN WINDOW</div></div><div id=lib-grid style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px;max-height:520px;overflow-y:auto"></div></div>'}
 return ''}
 const groupTpl=function(title,inner){return '<div class=field-group><div class=field-group-ttl>'+title+'</div>'+inner+'</div>'};
 let body='';for(const k of tabKeys){const groups=PANEL[k];body+='<div class="pane'+(k===tabKeys[0]?' active':'')+'" data-pane="'+k+'">'+groups.map(function(g){return groupTpl(g[0],g[1].map(fieldHtml).join(''))}).join('')+'</div>'}
 $('#body').innerHTML=body;
-// ---- PRESETS group (popout-only) ----
 const gamePane=$('[data-pane="game"]');
 if(gamePane){
 const presetHtml='<div class=field-group style="grid-column:1 / -1"><div class=field-group-ttl>PRESETS // SAVE &amp; LOAD</div>'+
@@ -1204,7 +1132,6 @@ const presetHtml='<div class=field-group style="grid-column:1 / -1"><div class=f
 '<div id=preset-status style="margin-top:8px;font-size:9px;color:var(--ink-dim);letter-spacing:.2em;min-height:11px"></div>'+
 '</div>';
 gamePane.insertAdjacentHTML('afterbegin',presetHtml);
-// wire
 const includeToggle=$('#preset-include-map');
 includeToggle.addEventListener('click',function(){if(!checkLink())return;includeToggle.classList.toggle('on');try{op.sfx.ui(560,.05)}catch(e){}});
 const setStat=function(msg,ok){const el=$('#preset-status');if(el){el.textContent=msg;el.style.color=ok===false?'var(--danger)':ok===true?'var(--ok)':'var(--ink-dim)'}};
@@ -1212,118 +1139,98 @@ $('#btn-preset-export').addEventListener('click',async function(){if(!checkLink(
 const fileInput=$('#preset-file-input');
 $('#btn-preset-import').addEventListener('click',function(){if(!checkLink())return;op.sfx.ui(700,.05);fileInput.click()});
 fileInput.addEventListener('change',async function(e){if(!checkLink())return;const f=e.target.files&&e.target.files[0];if(!f)return;try{setStat('READING '+f.name+'…',null);const includeMap=includeToggle.classList.contains('on');const r=await op.importPresetZip(f,{applyMap:includeMap});if(r.cancelled){setStat('IMPORT CANCELLED',null);return}setStat('IMPORTED // '+(r.meta.name||'PRESET')+' — '+r.applied+' KEYS APPLIED'+(r.unknownKeys.length?', '+r.unknownKeys.length+' UNKNOWN':''),true);refreshAllPopoutWidgets();try{op.refreshMainPanelFromCfg()}catch(e2){}}catch(err){console.error(err);setStat('IMPORT FAILED: '+err.message,false)}fileInput.value=''});}
-// Refresh every widget in the popout to match current CFG (used after import)
 function refreshAllPopoutWidgets(){
 document.querySelectorAll('input[type=range][id^="cfg-"]').forEach(function(el){const k=el.id.replace('cfg-','');if(k in CFG){el.value=CFG[k];const lbl=document.getElementById('lbl-'+k);if(lbl)lbl.textContent=(FMTS[k]||FI)(CFG[k])}});
 document.querySelectorAll('select[id^="cfg-"]').forEach(function(el){const k=el.id.replace('cfg-','');if(k in CFG)el.value=CFG[k]});
 document.querySelectorAll('.toggle-sw[data-cfg]').forEach(function(el){const k=el.dataset.cfg;if(k in CFG)el.classList.toggle('on',!!CFG[k])});
-['sfxProfile','mapBrush'].forEach(function(k){const seg=document.getElementById('seg-'+k);if(seg)seg.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.dataset.v===CFG[k])})});
+['mapBrush','camMode'].forEach(function(k){const seg=document.getElementById('seg-'+k);if(seg)seg.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.dataset.v===CFG[k])})});
 document.querySelectorAll('#palette-swatches > div').forEach(function(sw,i){sw.classList.toggle('on',i===CFG.palette)});const pl=document.getElementById('lbl-palette');if(pl)pl.textContent=PALETTES[CFG.palette].name;populateLibraryPop()}
-// Library grid populated from main window's thumbnails
 function populateLibraryPop(){const grid=document.getElementById('lib-grid');if(!grid||!checkLink())return;grid.innerHTML='';const items=op.getLibraryItems();for(const it of items){const cell=document.createElement('button');cell.dataset.kind=it.kind;cell.title=it.label;cell.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:4px;border:1px solid var(--line-dim);background:'+(CFG.mapBrush===it.kind?'rgba(184,121,74,.18)':'rgba(0,0,0,.3)')+';cursor:pointer;font-family:inherit;color:var(--ink);transition:all .12s';const img=document.createElement('img');img.style.cssText='width:64px;height:64px;background:rgba(0,0,0,.4);display:block;image-rendering:pixelated';try{const url=op.getThumb(it.kind);if(url)img.src=url}catch(e){}cell.appendChild(img);const lab=document.createElement('div');lab.style.cssText='font-size:8px;color:var(--ink-dim);letter-spacing:.15em;margin-top:3px;text-align:center;line-height:1.2';lab.textContent=it.label;cell.appendChild(lab);cell.addEventListener('mouseenter',function(){cell.style.borderColor='var(--accent)'});cell.addEventListener('mouseleave',function(){cell.style.borderColor='var(--line-dim)'});cell.addEventListener('click',function(){if(!checkLink())return;CFG.mapBrush=it.kind;op.getMapEditor().brush=it.kind;op.sfx.ui(640,.05);populateLibraryPop();const seg=document.getElementById('seg-brush');if(seg)seg.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.dataset.v===it.kind)})});grid.appendChild(cell)}}
 populateLibraryPop();
-// Tab switching
-$$('.tab').forEach(function(t){t.addEventListener('click',function(){if(!checkLink())return;$$('.tab').forEach(function(x){x.classList.remove('active')});$$('.pane').forEach(function(x){x.classList.remove('active')});t.classList.add('active');$('[data-pane="'+t.dataset.tab+'"]').classList.add('active');try{op.sfx.ui(500,.04)}catch(e){}})});
-// Bind sliders, segs, dropdowns by walking PANEL the same way the main window does
+$$('.tab').forEach(function(t){t.addEventListener('click',function(){if(!checkLink())return;$$('.tab').forEach(function(x){x.classList.remove('active')});$$('.pane').forEach(function(x){x.classList.remove('active')});t.classList.add('active');$('[data-pane="'+t.dataset.tab+'"]').classList.add('active');try{op.sfx.ui(500,.04)}catch(e){}if(t.dataset.tab==='map'){const mm=$('#map-minimap');if(mm)try{op.renderMinimap(mm)}catch(_){}}})});
 function bindSlider(key,fmt,onChange){const el=$('#cfg-'+key),lbl=$('#lbl-'+key);if(!el)return;el.value=CFG[key];lbl.textContent=fmt(CFG[key]);el.addEventListener('input',function(){if(!checkLink())return;const v=parseFloat(el.value);CFG[key]=v;lbl.textContent=fmt(v);try{onChange&&onChange(v)}catch(e){console.warn(e)}})}
 function bindSeg(key,after){const seg=$('#seg-'+key);if(!seg)return;seg.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){if(!checkLink())return;seg.querySelectorAll('button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');CFG[key]=b.dataset.v;try{op.sfx.ui(600,.05);after&&after()}catch(e){}})})}
-function bindDD(key,after){const el=$('#cfg-'+key);if(!el)return;el.addEventListener('change',function(){if(!checkLink())return;CFG[key]=el.value;try{op.sfx.ensure();op.sfx.preview(el.value,SMP_KIND[key]||'fire');after&&after()}catch(e){}})}
+function bindDD(key,after){const el=$('#cfg-'+key);if(!el)return;el.addEventListener('change',function(){if(!checkLink())return;CFG[key]=el.value;try{op.sfx.ensure();op.sfx.preview(el.value,SMP_KIND[key]||'fire');after&&after()}catch(e){}});const pb=$('#play-'+key);if(pb)pb.addEventListener('click',function(){if(!checkLink())return;try{op.sfx.ensure();op.sfx.preview(CFG[key],SMP_KIND[key]||'fire')}catch(e){}})}
 for(const k of tabKeys)for(const g of PANEL[k])for(const f of g[1]){const t=f[0];if(t==='sl'){bindSlider(f[1],f[6]||FI,f[7])}else if(t==='sg'){bindSeg(f[1],f[1]==='mapBrush'?function(){op.getMapEditor().brush=CFG.mapBrush||'tree'}:null)}else if(t==='dd'){bindDD(f[1],(f[1]==='smpIdle'||f[1]==='smpDrive')?function(){op.sfx.applyEngine()}:null)}}
-// Toggles
 $$('.toggle-sw').forEach(function(t){t.addEventListener('click',function(){if(!checkLink())return;t.classList.toggle('on');CFG[t.dataset.cfg]=t.classList.contains('on');try{op.sfx.ui(560,.05);op.applyVisuals()}catch(e){}})});
-// Palette swatches
-const sw=$('#palette-swatches');if(sw){PALETTES.forEach(function(p,i){const el=document.createElement('div');el.className='swatch'+(i===CFG.palette?' on':'');el.style.background='linear-gradient(135deg, '+p.bg+' 0%, '+p.bg+' 33%, '+p.ground+' 33%, '+p.ground+' 66%, '+p.accent+' 66%)';el.title=p.name;el.addEventListener('click',function(){if(!checkLink())return;CFG.palette=i;$('#lbl-palette').textContent=p.name;sw.querySelectorAll('.swatch').forEach(function(s){s.classList.remove('on')});el.classList.add('on');try{op.applyPaletteToDOM();op.sfx.ui(640,.05)}catch(e){}});sw.appendChild(el)});$('#lbl-palette').textContent=PALETTES[CFG.palette].name}
-// Match buttons
+const sw=$('#palette-swatches');const PAL_KEYS=['bg','ground','accent','line','p1','p2','p3','p4'];
+function syncPalettePickers(){const cur=PALETTES[CFG.palette];if(!cur)return;PAL_KEYS.forEach(function(k){const el=$('#col-'+k);if(el&&cur[k])el.value=cur[k]})}
+function onPaletteChange(){try{op.applyPaletteToDOM();op.generateBattlefield()}catch(e){}}
+if(sw){PALETTES.forEach(function(p,i){const el=document.createElement('div');el.className='swatch'+(i===CFG.palette?' on':'');el.style.background='linear-gradient(135deg, '+p.bg+' 0%, '+p.bg+' 33%, '+p.ground+' 33%, '+p.ground+' 66%, '+p.accent+' 66%)';el.title=p.name;el.addEventListener('click',function(){if(!checkLink())return;CFG.palette=i;$('#lbl-palette').textContent=p.name;sw.querySelectorAll('.swatch').forEach(function(s){s.classList.remove('on')});el.classList.add('on');syncPalettePickers();onPaletteChange();try{op.sfx.ui(640,.05)}catch(e){}});sw.appendChild(el)});$('#lbl-palette').textContent=PALETTES[CFG.palette].name;syncPalettePickers();PAL_KEYS.forEach(function(k){const inp=$('#col-'+k);if(!inp)return;inp.addEventListener('input',function(){if(!checkLink())return;const cur=PALETTES[CFG.palette];if(!cur)return;cur[k]=inp.value;try{op.applyPaletteToDOM()}catch(e){}});inp.addEventListener('change',function(){if(!checkLink())return;onPaletteChange();try{op.sfx.ui(620,.04)}catch(e){}})})}
 function call(id,fn){const e=$('#'+id);if(e)e.addEventListener('click',function(){if(!checkLink())return;try{fn()}catch(e2){}})}
-call('btn-restart',function(){op.sfx.ui(800,.06);op.startMatch()});
-call('btn-pause',function(){op.sfx.ui(700,.05);op.togglePauseFromPopout&&op.togglePauseFromPopout()});
-call('btn-regen',function(){op.sfx.ui(700,.06);CFG.seed=Math.floor(Math.random()*9999)+1;const s=$('#cfg-seed'),l=$('#lbl-seed');if(s){s.value=CFG.seed;l.textContent=CFG.seed}if(op.startMatch)op.startMatch()});
-call('btn-reset-all',function(){op.sfx.ui(500,.07);op.resetAllConfig();setTimeout(function(){location.reload()},80)});
-call('btn-test-fire',function(){op.sfx.fire()});
-call('btn-test-boom',function(){op.sfx.explosion(1)});
-// SFX status
+call('p-btn-restart',function(){op.sfx.ui(800,.06);op.startMatch()});
+call('p-btn-pause',function(){op.sfx.ui(700,.05);op.togglePauseFromPopout&&op.togglePauseFromPopout()});
+call('p-btn-regen',function(){op.sfx.ui(700,.06);CFG.seed=Math.floor(Math.random()*9999)+1;const s=$('#cfg-seed'),l=$('#lbl-seed');if(s){s.value=CFG.seed;l.textContent=CFG.seed}if(op.startMatch)op.startMatch()});
+call('p-btn-quit',function(){op.sfx.ui(400,.08);const b=op.document.getElementById('btn-quit');if(b)b.click()});
+call('p-btn-reset-all',function(){op.sfx.ui(500,.07);op.resetAllConfig();setTimeout(function(){location.reload()},80)});
 function updateSfxStatus(){const el=$('#sfx-load-status'),warn=$('#sfx-load-warn');if(!el||!op.sfx)return;const s=op.sfx.loadStatus;if(!s)return;el.textContent=s.loaded+' / '+s.total+(s.inProgress?' …':'');el.style.color=s.loaded===s.total?'var(--ok)':s.loaded>0?'var(--ink)':'var(--danger)';if(warn){if(s.loaded===0&&!s.inProgress&&op.sfx.ctx){warn.style.display='block';warn.textContent='SFX FOLDER NOT REACHABLE — CHECK ./sfx/'}else if(s.failed&&s.failed.length&&!s.inProgress){warn.style.display='block';warn.textContent=s.failed.length+' SAMPLE(S) FAILED — SEE MAIN CONSOLE'}else warn.style.display='none'}}
 call('btn-sfx-reload',function(){op.sfx.ensure();op.sfx.loadSamples(true).then(function(){op.sfx.applyEngine();updateSfxStatus()});updateSfxStatus()});
 updateSfxStatus();setInterval(updateSfxStatus,1500);
-// Map editor controls
 const ME=op.getMapEditor();
 const r=$('#cfg-brushR'),rl=$('#lbl-brushR');if(r)r.addEventListener('input',function(){if(!checkLink())return;ME.radius=parseFloat(r.value);rl.textContent=ME.radius.toFixed(1)});
 const sp=$('#cfg-brushSpacing'),spl=$('#lbl-brushSpacing');if(sp)sp.addEventListener('input',function(){if(!checkLink())return;ME.spacing=parseFloat(sp.value);spl.textContent=ME.spacing.toFixed(2)});
 const bv=$('#cfg-brushVariety'),bvl=$('#lbl-brushVariety');if(bv)bv.addEventListener('input',function(){if(!checkLink())return;CFG.brushVariety=parseInt(bv.value);bvl.textContent=CFG.brushVariety});
 call('map-editor-toggle',function(){const btn=op.document.getElementById('map-editor-toggle');if(btn)btn.click();const me=op.getMapEditor();$('#map-editor-toggle').textContent='EDITOR :: '+(me.enabled?'ON':'OFF')});
-// Brush seg-buttons must update both CFG.mapBrush AND the live MapEditor.brush
 (function(){const seg=$('#seg-brush');if(!seg)return;seg.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){if(!checkLink())return;seg.querySelectorAll('button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');CFG.mapBrush=b.dataset.v;op.getMapEditor().brush=CFG.mapBrush;try{op.sfx.ui(600,.05)}catch(e){}populateLibraryPop()})})})();
 call('map-clear-trees',function(){const b=op.document.getElementById('map-clear-trees');if(b)b.click()});
 call('map-clear-rocks',function(){const b=op.document.getElementById('map-clear-rocks');if(b)b.click()});
 call('map-clear-all',function(){const b=op.document.getElementById('map-clear-all');if(b)b.click()});
-call('map-export-json',function(){const d=op.exportMap();const ta=$('#map-json-area');if(ta)ta.value=JSON.stringify(d,null,2)});
 call('map-export-download',function(){const d=op.exportMap(),bl=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download='kodkod-map-'+Date.now()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u)},1000)});
-call('map-import-json',function(){const ta=$('#map-json-area');if(!ta||!ta.value.trim())return;try{op.importMap(JSON.parse(ta.value))}catch(e){alert('Import failed: '+e.message)}});
-// Heartbeat: detect when opener closes, switch status
+call('map-import-json',function(){const f=$('#map-import-file');if(f)f.click()});
+(function(){const f=$('#map-import-file');if(!f)return;f.addEventListener('change',async function(e){const file=e.target.files&&e.target.files[0];if(!file)return;try{const text=await file.text();const data=JSON.parse(text);if(op.importMap(data)){try{op.sfx.ui(900,.06)}catch(_){}const mm=$('#map-minimap');if(mm)op.renderMinimap(mm)}else throw new Error('importMap returned false')}catch(err){console.error('Map import failed:',err);try{op.sfx.ui(200,.1)}catch(_){}}e.target.value=''})})();
+call('map-refresh-minimap',function(){try{op.sfx.ui(600,.04)}catch(_){}const mm=$('#map-minimap');if(mm)op.renderMinimap(mm)});
+const closeBtn=$('#btn-close-popout');if(closeBtn)closeBtn.addEventListener('click',function(){try{op.focus()}catch(_){}window.close()});
 setInterval(checkLink,2000);
 $('#foot-stamp').textContent='POPOUT '+new Date().toTimeString().slice(0,8);
-// Notify opener we're up
 try{op.onDevPopoutReady&&op.onDevPopoutReady()}catch(e){}
 })();<\/script></body></html>`}
 function openDevPopout(){
 if(devPopout&&!devPopout.closed){devPopout.focus();return}
-// 1180×780 is a comfortable single-half of a 24" monitor; opens at top-right of current screen.
-const w=window.open('','kodkod-dev','popup,width=1180,height=780,left='+(screen.width-1180)+',top=40');
+const w=window.open('','kodkod-dev','popup=1,location=0,toolbar=0,menubar=0,status=0,scrollbars=0,resizable=1,width=1180,height=780,left='+(screen.width-1180)+',top=40');
 if(!w){alert('Popup blocked. Allow popups for this site, then click POP OUT again.');return}
 w.document.open();w.document.write(buildDevPopoutHtml());w.document.close();
 devPopout=w;
-// Hide main panel while popout is up; clicking hamburger refocuses popout.
 document.body.classList.add('dev-popout-open');document.body.classList.remove('panel-open');
-// Close-button inside popout: closes the window.
 const tryWire=()=>{const b=w.document.getElementById('btn-close-popout');if(b){b.addEventListener('click',()=>w.close())}else setTimeout(tryWire,80)};tryWire();
-// Poll for close → restore main panel
 if(devPopoutPoll)clearInterval(devPopoutPoll);
 devPopoutPoll=setInterval(()=>{if(!devPopout||devPopout.closed){clearInterval(devPopoutPoll);devPopoutPoll=null;devPopout=null;document.body.classList.remove('dev-popout-open')}},500);
 }
 window.onDevPopoutReady=()=>{};
 $('#btn-popout').addEventListener('click',()=>{sfx.ui(700,.06);openDevPopout()});
-// boot screen
+$('#btn-dev-open')?.addEventListener('click',()=>{sfx.ui(700,.06);openDevPopout()});
 (function(){const fill=$('#boot-fill'),pct=$('#boot-pct'),start=$('#boot-start'),stage=$('#boot-stage');if(!fill||!pct||!start||!stage)return;
 const t0=performance.now(),tot=2200;
 function tick(){const el=performance.now()-t0,p=Math.min(1,el/tot),s=Math.floor(p*100);fill.style.width=s+'%';pct.textContent=s+'%';if(p<1)requestAnimationFrame(tick);else{pct.textContent='100%';setTimeout(()=>{stage.style.display='none';start.style.display='block'},250)}}
 requestAnimationFrame(tick);
 start.addEventListener('click',()=>{sfx.ensure();sfx.ui(900,.08);startMatch()})})();
-// tabs
-$$('.tab').forEach(tab=>tab.addEventListener('click',()=>{$$('.tab').forEach(t=>t.classList.remove('active'));$$('.tab-pane').forEach(p=>p.classList.remove('active'));tab.classList.add('active');$(`.tab-pane[data-pane="${tab.dataset.tab}"]`).classList.add('active');sfx.ui(500,.04)}));
-// bind everything from PANEL
+$$('.tab').forEach(tab=>tab.addEventListener('click',()=>{$$('.tab').forEach(t=>t.classList.remove('active'));$$('.tab-pane').forEach(p=>p.classList.remove('active'));tab.classList.add('active');$(`.tab-pane[data-pane="${tab.dataset.tab}"]`).classList.add('active');sfx.ui(500,.04);if(tab.dataset.tab==='map'){const mm=$('#map-minimap');if(mm)renderMinimap(mm)}}));
 function bindSlider(id,key,lblSel,fmt,onChange){const el=$('#cfg-'+id),lbl=$(lblSel);if(!el)return;el.value=CFG[key];lbl.textContent=fmt(CFG[key]);el.addEventListener('input',()=>{const v=parseFloat(el.value);CFG[key]=v;lbl.textContent=fmt(v);onChange?.(v)})}
 function bindSeg(id,key,after){const seg=$(id);if(!seg)return;seg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{seg.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');CFG[key]=b.dataset.v;sfx.ui(600,.05);after?.()}))}
-// Map each sample-routing dropdown to the preview "kind" so changing it plays the right thing on the right bus.
 const SMP_KIND={smpCannon:'fire',smpMg:'mg',smpLoad:'fire',smpBoom:'boom',smpImpact:'impact',smpIdle:'fire',smpDrive:'fire',smpUi:'ui'};
-function bindDD(key,after){const el=$('#cfg-'+key);if(!el)return;el.addEventListener('change',()=>{CFG[key]=el.value;sfx.ensure();sfx.preview(el.value,SMP_KIND[key]||'fire');after?.()})}
+function bindDD(key,after){const el=$('#cfg-'+key);if(!el)return;el.addEventListener('change',()=>{CFG[key]=el.value;sfx.ensure();sfx.preview(el.value,SMP_KIND[key]||'fire');after?.()});const pb=$('#play-'+key);if(pb)pb.addEventListener('click',()=>{sfx.ensure();sfx.preview(CFG[key],SMP_KIND[key]||'fire')})}
 for(const groups of Object.values(PANEL))for(const[,fs]of groups)for(const f of fs){const t=f[0];if(t==='sl'){const[,k,,,,,fmt,cb]=f;bindSlider(k,k,'#lbl-'+k,fmt||FI,cb)}else if(t==='sg'){const[,k]=f;bindSeg('#seg-'+k,k)}else if(t==='dd'){const[,k]=f;bindDD(k,(k==='smpIdle'||k==='smpDrive')?()=>sfx.applyEngine():null)}}
-// SFX status widget
 function updateSfxStatus(){const el=$('#sfx-load-status'),warn=$('#sfx-load-warn');if(!el)return;const s=sfx.loadStatus;el.textContent=`${s.loaded} / ${s.total}${s.inProgress?' …':''}`;el.style.color=s.loaded===s.total?'var(--ok)':s.loaded>0?'var(--ink)':'var(--danger)';if(warn){if(s.loaded===0&&!s.inProgress&&sfx.ctx){const isFile=location.protocol==='file:';warn.style.display='block';warn.textContent=isFile?'OPENED VIA file:// — BROWSERS BLOCK FETCH. RUN: python3 -m http.server':'SFX FOLDER NOT REACHABLE — CHECK ./sfx/ EXISTS NEXT TO INDEX.HTML'}else if(s.failed.length&&!s.inProgress){warn.style.display='block';warn.textContent=`${s.failed.length} SAMPLE(S) FAILED — SEE CONSOLE`}else warn.style.display='none'}}
 $('#btn-sfx-reload')?.addEventListener('click',()=>{sfx.ensure();sfx.ui(700,.05);sfx.loadSamples(true).then(()=>{sfx.applyEngine();updateSfxStatus()});updateSfxStatus()});
 updateSfxStatus();
-// toggles (delegated)
 $$('.toggle-sw').forEach(t=>t.addEventListener('click',()=>{t.classList.toggle('on');CFG[t.dataset.cfg]=t.classList.contains('on');sfx.ui(560,.05);applyVisuals()}));
-// palette swatches
-const swEl=$('#palette-swatches');
-PALETTES.forEach((p,i)=>{const sw=document.createElement('div');sw.className='swatch'+(i===CFG.palette?' on':'');sw.style.background=`linear-gradient(135deg, ${p.bg} 0%, ${p.bg} 33%, ${p.ground} 33%, ${p.ground} 66%, ${p.accent} 66%)`;sw.title=p.name;sw.addEventListener('click',()=>{CFG.palette=i;$('#lbl-palette').textContent=p.name;$$('#palette-swatches .swatch').forEach(s=>s.classList.remove('on'));sw.classList.add('on');applyPaletteToDOM();if(gameState==='playing')generateBattlefield();sfx.ui(640,.05)});swEl.appendChild(sw)});
-$('#lbl-palette').textContent=PALETTES[CFG.palette].name;
-// match buttons
+const PAL_KEYS=['bg','ground','accent','line','p1','p2','p3','p4'];
+function syncPalettePickers(){const cur=PALETTES[CFG.palette];if(!cur)return;PAL_KEYS.forEach(k=>{const el=$('#col-'+k);if(el&&cur[k])el.value=cur[k]})}
+function onPaletteChange(){applyPaletteToDOM();if(gameState!=='menu')generateBattlefield()}
+{const swEl=$('#palette-swatches');if(swEl){PALETTES.forEach((p,i)=>{const sw=document.createElement('div');sw.className='swatch'+(i===CFG.palette?' on':'');sw.style.background=`linear-gradient(135deg, ${p.bg} 0%, ${p.bg} 33%, ${p.ground} 33%, ${p.ground} 66%, ${p.accent} 66%)`;sw.title=p.name;sw.addEventListener('click',()=>{CFG.palette=i;const lbl=$('#lbl-palette');if(lbl)lbl.textContent=p.name;$$('#palette-swatches .swatch').forEach(s=>s.classList.remove('on'));sw.classList.add('on');syncPalettePickers();onPaletteChange();sfx.ui(640,.05)});swEl.appendChild(sw)});const lbl=$('#lbl-palette');if(lbl)lbl.textContent=PALETTES[CFG.palette].name;syncPalettePickers();PAL_KEYS.forEach(k=>{const el=$('#col-'+k);if(!el)return;el.addEventListener('input',()=>{const cur=PALETTES[CFG.palette];if(!cur)return;cur[k]=el.value;applyPaletteToDOM()});el.addEventListener('change',()=>{onPaletteChange();sfx.ui(620,.04)})})}}
 function exitToMenu(){gameState='menu';dom.menu.style.display='';dom.message.classList.remove('show');hideGameOver();document.body.classList.remove('panel-open');dom.bottombar.style.display='none';dom.topbar.style.display='none';dom.crosshair.style.display='none';dom.hint.style.display='none';if(dom.radar)dom.radar.style.display='none';if(dom.baseTimer)dom.baseTimer.style.display='none';dom.killfeed.innerHTML=''}
-function resetAllConfig(){Object.keys(CFG_DEFAULTS).forEach(k=>{CFG[k]=CFG_DEFAULTS[k]});document.querySelectorAll('input[type=range][id^="cfg-"]').forEach(el=>{const key=el.id.replace('cfg-','');if(key in CFG){el.value=CFG[key];const lbl=$('#lbl-'+key);if(lbl)lbl.textContent=(FMTS[key]||FI)(CFG[key])}});document.querySelectorAll('select[id^="cfg-"]').forEach(el=>{const key=el.id.replace('cfg-','');if(key in CFG)el.value=CFG[key]});document.querySelectorAll('#seg-sfxProfile button').forEach(b=>b.classList.toggle('on',b.dataset.v===CFG.sfxProfile));document.querySelectorAll('#palette-swatches > div').forEach((sw,i)=>sw.classList.toggle('on',i===CFG.palette));$('#lbl-palette')&&($('#lbl-palette').textContent=PALETTES[CFG.palette].name);applyPaletteToDOM();if(scene.fog)scene.fog.density=CFG.fog;sfx.updateVolumes?.();sfx.applyEngine?.();applyVisuals();ENTITIES.tanks.forEach(t=>t.applyScales());addKillFeed('CONFIG :: ALL DEFAULTS RESTORED')}
+function resetAllConfig(){Object.keys(CFG_DEFAULTS).forEach(k=>{CFG[k]=CFG_DEFAULTS[k]});document.querySelectorAll('input[type=range][id^="cfg-"]').forEach(el=>{const key=el.id.replace('cfg-','');if(key in CFG){el.value=CFG[key];const lbl=$('#lbl-'+key);if(lbl)lbl.textContent=(FMTS[key]||FI)(CFG[key])}});document.querySelectorAll('select[id^="cfg-"]').forEach(el=>{const key=el.id.replace('cfg-','');if(key in CFG)el.value=CFG[key]});document.querySelectorAll('#palette-swatches > div').forEach((sw,i)=>sw.classList.toggle('on',i===CFG.palette));$('#lbl-palette')&&($('#lbl-palette').textContent=PALETTES[CFG.palette].name);applyPaletteToDOM();if(scene.fog)scene.fog.density=CFG.fog;sfx.updateVolumes?.();sfx.applyEngine?.();applyVisuals();ENTITIES.tanks.forEach(t=>t.applyScales());addKillFeed('CONFIG :: ALL DEFAULTS RESTORED')}
 $('#btn-restart').addEventListener('click',()=>{sfx.ui(800,.06);startMatch()});
 function togglePause(){if(gameState==='playing'){gameState='paused';showMessage('PAUSED','PRESS BUTTON OR ESC TO RESUME',true);const b=$('#btn-pause');if(b)b.textContent='RESUME'}else if(gameState==='paused'){gameState='playing';dom.message.classList.remove('show');const b=$('#btn-pause');if(b)b.textContent='PAUSE'}}
 $('#btn-pause').addEventListener('click',()=>{sfx.ui(700,.05);togglePause()});
-$('#btn-regen').addEventListener('click',()=>{sfx.ui(700,.06);CFG.seed=Math.floor(Math.random()*9999)+1;$('#cfg-seed').value=CFG.seed;$('#lbl-seed').textContent=CFG.seed;if(gameState==='playing'||gameState==='over')startMatch()});
+$('#btn-regen').addEventListener('click',()=>{sfx.ui(700,.06);CFG.seed=Math.floor(Math.random()*9999)+1;const s=$('#cfg-seed'),l=$('#lbl-seed');if(s)s.value=CFG.seed;if(l)l.textContent=CFG.seed;if(gameState!=='menu')startMatch()});
 $('#btn-reset-all').addEventListener('click',()=>{sfx.ui(500,.07);resetAllConfig()});
 $('#btn-quit').addEventListener('click',()=>{sfx.ui(400,.08);exitToMenu()});
 $('#go-restart').addEventListener('click',()=>{sfx.ui(800,.06);startMatch()});
-$('#go-regen').addEventListener('click',()=>{sfx.ui(700,.06);CFG.seed=Math.floor(Math.random()*9999)+1;$('#cfg-seed').value=CFG.seed;$('#lbl-seed').textContent=CFG.seed;startMatch()});
+$('#go-regen').addEventListener('click',()=>{sfx.ui(700,.06);CFG.seed=Math.floor(Math.random()*9999)+1;const s=$('#cfg-seed'),l=$('#lbl-seed');if(s)s.value=CFG.seed;if(l)l.textContent=CFG.seed;startMatch()});
 $('#go-settings').addEventListener('click',()=>{sfx.ui(700,.06);hideGameOver();document.body.classList.add('panel-open')});
 $('#go-menu').addEventListener('click',()=>{sfx.ui(400,.08);exitToMenu()});
-$('#btn-test-fire').addEventListener('click',()=>sfx.fire());
-$('#btn-test-boom').addEventListener('click',()=>sfx.explosion(1));
-// map editor
 attachEditorMouse();
+attachCamControls();
 $('#map-editor-toggle')?.addEventListener('click',()=>{sfx.ui(700,.05);setEditorEnabled(!MapEditor.enabled)});
 bindSeg('#seg-brush','mapBrush',()=>{MapEditor.brush=CFG.mapBrush||'tree';populateLibrary()});
 CFG.mapBrush='tree';
@@ -1331,9 +1238,10 @@ CFG.mapBrush='tree';
 $('#map-clear-trees')?.addEventListener('click',()=>{sfx.ui(500,.05);for(const t of TERRAIN.trees){scene.remove(t.mesh);t.mesh.traverse(o=>o.geometry?.dispose?.())}TERRAIN.trees.length=0});
 $('#map-clear-rocks')?.addEventListener('click',()=>{sfx.ui(500,.05);for(const r of TERRAIN.rocks){scene.remove(r.mesh);r.mesh.geometry?.dispose?.()}TERRAIN.rocks.length=0});
 $('#map-clear-all')?.addEventListener('click',()=>{sfx.ui(400,.08);for(const t of TERRAIN.trees){scene.remove(t.mesh);t.mesh.traverse(o=>o.geometry?.dispose?.())}TERRAIN.trees.length=0;for(const r of TERRAIN.rocks){scene.remove(r.mesh);r.mesh.geometry?.dispose?.()}TERRAIN.rocks.length=0;for(const p of(TERRAIN.props||[])){scene.remove(p.mesh);p.mesh.traverse(o=>o.geometry?.dispose?.())}if(TERRAIN.props)TERRAIN.props.length=0});
-$('#map-export-json')?.addEventListener('click',()=>{sfx.ui(700,.05);const d=exportMap(),ta=$('#map-json-area');if(ta)ta.value=JSON.stringify(d,null,2)});
-$('#map-export-download')?.addEventListener('click',()=>{sfx.ui(700,.05);const d=exportMap(),bl=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=`cannon-battle-map-${Date.now()}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(u),1000)});
-$('#map-import-json')?.addEventListener('click',()=>{const ta=$('#map-json-area');if(!ta||!ta.value.trim())return;try{importMap(JSON.parse(ta.value));sfx.ui(900,.06)}catch(e){sfx.ui(200,.1);console.error('Map import failed:',e);alert('Map import failed — check JSON syntax.')}});
+$('#map-export-download')?.addEventListener('click',()=>{sfx.ui(700,.05);const d=exportMap(),bl=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=`kodkod-map-${Date.now()}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(u),1000)});
+$('#map-import-json')?.addEventListener('click',()=>{const f=$('#map-import-file');if(f)f.click()});
+$('#map-import-file')?.addEventListener('change',async e=>{const file=e.target.files&&e.target.files[0];if(!file)return;try{const text=await file.text();const data=JSON.parse(text);if(importMap(data)){sfx.ui(900,.06);addKillFeed('MAP IMPORTED // '+file.name);renderMinimap($('#map-minimap'))}else throw new Error('importMap returned false')}catch(err){sfx.ui(200,.1);console.error('Map import failed:',err);addKillFeed('IMPORT FAILED // '+err.message)}e.target.value=''});
+$('#map-refresh-minimap')?.addEventListener('click',()=>{sfx.ui(600,.04);renderMinimap($('#map-minimap'))});
 function applyVisuals(){dom.crosshair.style.display=(CFG.showCross&&gameState==='playing')?'':'none';dom.hint.style.display=CFG.showHint&&gameState==='playing'?'':'none';scene.traverse(o=>{if(o.isLineSegments&&o.material)o.material.opacity=CFG.wire});if(TERRAIN.edges)TERRAIN.edges.material.opacity=CFG.wire*.4;if(TERRAIN.mesh)TERRAIN.mesh.material.opacity=CFG.fill;if(TERRAIN.gridMesh)TERRAIN.gridMesh.material.opacity=CFG.grid*.4;canvas.style.filter=`brightness(${CFG.bright/100}) contrast(${CFG.contrast/100})`}
 function applyHpAlpha(){const a=CFG.hpAlpha;for(const t of ENTITIES.tanks)if(t.hpSprite){t.hpSprite.material.opacity=a;t.hpSprite.material.transparent=true;t.hpSprite.visible=a>.01&&!t.dead}for(const b of ENTITIES.basements)if(b.hpSprite){b.hpSprite.material.opacity=a;b.hpSprite.material.transparent=true;b.hpSprite.visible=a>.01&&!b.dead}}
 // ===== BOOTSTRAP =====
@@ -1341,7 +1249,6 @@ applyPaletteToDOM();
 dom.crosshair.style.display='none';dom.hint.style.display='none';dom.bottombar.style.display='none';dom.topbar.style.display='none';if(dom.radar)dom.radar.style.display='none';if(dom.baseTimer)dom.baseTimer.style.display='none';
 scene.background=new C3(PALETTES[CFG.palette].sky);scene.fog=new T.FogExp2(PALETTES[CFG.palette].sky,CFG.fog);
 generateBattlefield();
-// All names are now defined — expose live references to the popout window.
-Object.assign(window,{CFG,CFG_DEFAULTS,PANEL,PALETTES,SAMPLE_FILES,FMTS,FI,FMT,F1,F2,F3,SMP_KIND,sfx,applyVisuals,applyHpAlpha,applyPaletteToDOM,generateBattlefield,resetAllConfig,onResize,getMapEditor:()=>MapEditor,exportMap,importMap,startMatch,togglePauseFromPopout:()=>{const b=$('#btn-pause');if(b)b.click()},exportPresetZip,importPresetZip,refreshMainPanelFromCfg,KODKOD_VERSION,PROPS_CATALOG,spawnProp,getTerrain:()=>TERRAIN,getLibraryItems,getThumb,OBJ_LIBRARY,importObjFile});
+Object.assign(window,{CFG,CFG_DEFAULTS,PANEL,PALETTES,SAMPLE_FILES,FMTS,FI,FMT,F1,F2,F3,SMP_KIND,sfx,applyVisuals,applyHpAlpha,applyPaletteToDOM,generateBattlefield,resetAllConfig,onResize,getMapEditor:()=>MapEditor,exportMap,importMap,startMatch,togglePauseFromPopout:()=>{const b=$('#btn-pause');if(b)b.click()},exportPresetZip,importPresetZip,refreshMainPanelFromCfg,KODKOD_VERSION,PROPS_CATALOG,spawnProp,getTerrain:()=>TERRAIN,getLibraryItems,getThumb,OBJ_LIBRARY,importObjFile,renderMinimap});
 requestAnimationFrame(frame);
 </script></body></html>
